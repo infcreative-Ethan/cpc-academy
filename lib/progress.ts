@@ -7,6 +7,11 @@ export type StudyProgress = {
   lastStudyDate: string;
   dailyIds: string[];
   dailyDate: string;
+  dailySize: 20 | 30;
+  dailyCompletedIds: string[];
+  dailyStudyIndex: number;
+  dailyStudyStarted: boolean;
+  dailyStudyCompleted: boolean;
   reviewRounds: number;
   reviewHistory: { date: string; round: number; correct: number; total: number }[];
 };
@@ -22,6 +27,11 @@ export const emptyProgress: StudyProgress = {
   lastStudyDate: "",
   dailyIds: [],
   dailyDate: "",
+  dailySize: 20,
+  dailyCompletedIds: [],
+  dailyStudyIndex: 0,
+  dailyStudyStarted: false,
+  dailyStudyCompleted: false,
   reviewRounds: 3,
   reviewHistory: [],
 };
