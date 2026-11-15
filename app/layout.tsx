@@ -5,6 +5,8 @@ export const metadata: Metadata = {
   title: "CPC Academy | Medical Vocabulary",
   description: "Bilingual medical terminology study for the US CPC certification pathway.",
   applicationName: "CPC Academy",
+  manifest: "/manifest.json",
+  icons: { icon: "/icon.svg", apple: "/icon.svg" },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "CPC Academy" },
 };
 
