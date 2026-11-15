@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, ArrowRight, AudioLines, BookOpen, Brain, Check, ChevronDown, Download,
   CircleHelp, Clock3, Flame, Headphones, Home, Layers3, ListChecks, Menu,
@@ -13,7 +13,7 @@ import { emptyProgress, getTodayKey, loadProgress, saveProgress, StudyProgress }
 type Tab = "home" | "words" | "review" | "listen" | "dictation" | "roots" | "progress";
 type DictationMode = "word" | "meaning" | "definition" | "root" | "clinical";
 const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties"];
-const APP_VERSION = "0.2.1";
+const APP_VERSION = "0.2.2";
 
 type AudioStatus = { message: string; kind: "info" | "success" | "error" };
 
@@ -23,54 +23,9 @@ function setAudioStatus(message: string, kind: AudioStatus["kind"] = "info") {
   }
 }
 
-async function speak(text: string, rate = 0.88): Promise<boolean> {
-  if (typeof window === "undefined" || !text.trim()) return false;
-  try {
-    const { Capacitor } = await import("@capacitor/core");
-    if (Capacitor.isNativePlatform()) {
-      const { TextToSpeech, QueueStrategy } = await import("@capacitor-community/text-to-speech");
-      await TextToSpeech.stop().catch(() => undefined);
-      const language = await TextToSpeech.isLanguageSupported({ lang: "en-US" }).catch(() => ({ supported: true }));
-      if (!language.supported) {
-        await TextToSpeech.openInstall().catch(() => undefined);
-        throw new Error("设备尚未提供 en-US 美式英语语音数据。请在刚打开的 Android 语音数据页面安装 English (United States)，再返回重试。");
-      }
-      await TextToSpeech.speak({
-        text,
-        lang: "en-US",
-        rate,
-        pitch: 1,
-        volume: 1,
-        queueStrategy: QueueStrategy.Flush,
-      });
-      setAudioStatus("已调用 Android 原生语音引擎播放美式英语。", "success");
-      return true;
-    }
-
-    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
-      throw new Error("当前浏览器没有可用的语音合成功能。");
-    }
-    const synthesis = window.speechSynthesis;
-    synthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    const voices = synthesis.getVoices();
-    const american = voices.find(v => v.lang.toLowerCase() === "en-us")
-      || voices.find(v => v.lang.toLowerCase().startsWith("en-us"));
-    if (american) utterance.voice = american;
-    utterance.lang = "en-US";
-    utterance.rate = rate;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    utterance.onstart = () => setAudioStatus("正在播放美式英语发音。", "success");
-    utterance.onend = () => setAudioStatus("播放完成。", "info");
-    utterance.onerror = event => setAudioStatus(`浏览器语音播放失败：${event.error || "语音引擎无响应"}。请检查设备语音服务和媒体音量。`, "error");
-    synthesis.speak(utterance);
-    return true;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "未知语音错误";
-    setAudioStatus(`发音无法播放：${message}`, "error");
-    return false;
-  }
+function audioSlug(value: string) {
+  return value.toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "audio";
 }
 
 function normalize(value: string) {
@@ -105,6 +60,7 @@ export default function HomePage() {
   const [checkingUpdate, setCheckingUpdate] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<{message:string;url?:string}|null>(null);
   const [audioInfo, setAudioInfo] = useState<AudioStatus | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const handleAudioStatus = (event: Event) => {
@@ -263,20 +219,45 @@ export default function HomePage() {
     }
   };
 
-  const openSpeechSettings = async () => {
-    try {
-      const { Capacitor } = await import("@capacitor/core");
-      if (!Capacitor.isNativePlatform()) {
-        setAudioInfo({ message: "请在已安装的 Android APK 中打开语音设置。", kind: "info" });
-        return;
-      }
-      const { TextToSpeech } = await import("@capacitor-community/text-to-speech");
-      await TextToSpeech.openInstall();
-      setAudioInfo({ message: "已打开 Android 语音数据安装页面。请安装 English (United States) 语音包。", kind: "success" });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "无法打开语音数据页面";
-      setAudioInfo({ message: `打开语音设置失败：${message}`, kind: "error" });
+  const playAudioFile = (src: string, rate = 1) => {
+    if (!src) {
+      setAudioStatus("找不到对应的 MP3 音频文件。", "error");
+      return;
     }
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    const audio = new Audio(src);
+    audio.preload = "auto";
+    audio.playbackRate = rate;
+    audioRef.current = audio;
+    audio.onplay = () => setAudioStatus("正在播放离线美式英语 MP3 音频。", "success");
+    audio.onended = () => setAudioStatus("播放完成。", "info");
+    audio.onerror = () => setAudioStatus("MP3 音频读取失败。请确认已安装最新 CPC Academy 版本。", "error");
+    audio.play().catch(error => {
+      const message = error instanceof Error ? error.message : "媒体播放失败";
+      setAudioStatus("MP3 播放失败：" + message, "error");
+    });
+  };
+
+  const playWord = (word: MedicalWord, rate = 1) => {
+    const index = words.findIndex(item => item.id === word.id);
+    if (index < 0) {
+      setAudioStatus("未找到这个单词对应的离线音频。", "error");
+      return;
+    }
+    const filename = String(index + 1).padStart(4, "0") + "-" + audioSlug(word.term) + ".mp3";
+    playAudioFile("/audio/words/" + filename, rate);
+  };
+
+  const playPart = (part: string, index: number, rate = 1) => {
+    const filename = String(index + 1).padStart(4, "0") + "-" + audioSlug(part) + ".mp3";
+    playAudioFile("/audio/parts/" + filename, rate);
+  };
+
+  const playExample = (word: MedicalWord, rate = 1) => {
+    playAudioFile("/audio/examples/" + audioSlug(word.term) + ".mp3", rate);
   };
 
   const checkForUpdates = async () => {
@@ -342,7 +323,7 @@ export default function HomePage() {
         {tab==="words" && <div className="page-content">
           <div className="page-title-row"><div><div className="eyebrow">MEDICAL TERMINOLOGY</div><h1>医学词汇库</h1><p>Search, study and master medical terms.</p></div><div className="count-chip">{words.length} TERMS</div></div>
           <div className="vocab-layout"><div className="vocab-list-panel"><div className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索英文、中文、词根…" /><span>{filteredWords.length}</span></div><div className="category-scroll">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?"filter-active":""}>{c==="All"?"全部":c}</button>)}</div><div className="vocab-list">{filteredWords.map(w=><button key={w.id} className={`vocab-row ${selected.id===w.id?"selected":""}`} onClick={()=>setSelected(w)}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="vocab-row-text"><b>{w.term}</b><small>{w.meaning || w.definition}</small></span><span className="row-status">{progress.knownIds.includes(w.id)?<Check size={16}/>:<span/>}</span></button>)}{filteredWords.length===0&&<div className="empty-state">没有找到匹配词汇。<br/>Try another search.</div>}</div></div>
-          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>speak(selected.term,0.88)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>speak(selected.term,0.65)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><span>ENGLISH DEFINITION</span><p>{selected.definition}</p></div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{p.meaning}</small></div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{selected.example}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>speak(selected.example,0.88)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>speak(selected.example,0.65)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">Android APK 使用原生语音引擎；美式英语音色取决于设备安装的语音包。教材注音供核对读音。</p><div className="audio-help-actions"><button className="inline-audio" onClick={()=>void speak("Hello. This is an American English pronunciation test.",0.9)}><Volume2 size={15}/> 测试声音</button><button className="inline-audio" onClick={openSpeechSettings}>检查 / 安装英语语音包</button></div></div></div>
+          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>playWord(selected,1)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>playWord(selected,0.75)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><span>ENGLISH DEFINITION</span><p>{selected.definition}</p></div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{p.meaning}</small></div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{selected.example}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(selected,1)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>playExample(selected,0.75)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">独立预生成的美式英语 MP3 音频 · 离线可播放 · 慢速播放 0.75×。不使用手机 TTS 或语音包。</p><div className="audio-help-actions"><button className="inline-audio" onClick={()=>playWord(selected,1)}><Volume2 size={15}/> 试听当前单词</button></div></div></div>
         </div>}
 
         {tab==="review" && <div className="page-content narrow-content">
@@ -361,7 +342,7 @@ export default function HomePage() {
             <h2>{currentReviewWord.meaning || "根据英文释义回忆医学术语"}</h2>
             <p>{currentReviewWord.definition}</p>
             {currentReviewWord.pronunciation && <div className="pronunciation-guide">教材注音：{currentReviewWord.pronunciation}</div>}
-            <button className="play-button" onClick={()=>speak(currentReviewWord.term,0.78)}><Volume2 size={18}/> 播放单词</button>
+            <button className="play-button" onClick={()=>playWord(currentReviewWord,0.85)}><Volume2 size={18}/> 播放单词</button>
             <div className="listen-answer"><label>请写出对应的英文医学术语</label><input value={reviewAnswer} onChange={e=>{setReviewAnswer(e.target.value);setReviewFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&submitReviewAnswer()} placeholder="Type the medical term…" /><button className="primary-button full-button" onClick={submitReviewAnswer} disabled={!reviewAnswer.trim() || Boolean(reviewFeedback)}>提交答案 <Check size={16}/></button>
               {reviewFeedback && <div className={`feedback ${reviewFeedback}`}>{reviewFeedback==="correct"?"✓ 正确！":"正确答案："+currentReviewWord.term}</div>}
               <button className="next-button" onClick={advanceReview} disabled={!reviewFeedback}>{reviewIndex+1===reviewPool.length?(reviewRound===reviewRounds?"完成复习":"进入下一轮"):"下一题"} <ArrowRight size={16}/></button>
@@ -377,19 +358,19 @@ export default function HomePage() {
 
         {tab==="listen" && <div className="page-content narrow-content">
           <div className="page-title-row"><div><div className="eyebrow">LISTENING PRACTICE</div><h1>医学英语听力</h1><p>Listen carefully and identify the medical term.</p></div><div className="count-chip">US ENGLISH</div></div>
-          <div className="practice-card"><div className="practice-progress"><span>LISTENING · {listeningIndex+1}</span><span>{listeningIndex+1} / 10</span></div><div className="sound-visual"><div className="sound-orb"><AudioLines size={36}/></div><div className="sound-rings"/></div><h2>听一听，你听到了什么？</h2><p>点击播放按钮，仔细听清医学单词的发音。</p><button className="play-button" onClick={()=>speak(words[listeningIndex%words.length].term)}><Play size={20} fill="currentColor"/> 播放单词</button><div className="listen-hint">American English · en-US</div><div className="practice-divider"/><div className="listen-answer"><label>你听到的单词是什么？</label><input value={answer} onChange={e=>{setAnswer(e.target.value);setFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&setFeedback(normalize(answer)===normalize(words[listeningIndex%words.length].term)?"correct":"wrong")} placeholder="Type the medical term…" /><button className="primary-button full-button" onClick={()=>{const ok=normalize(answer)===normalize(words[listeningIndex%words.length].term);setFeedback(ok?"correct":"wrong");update({...progress,attempts:progress.attempts+1,correct:progress.correct+(ok?1:0)});}}>检查答案</button>{feedback&&<div className={`feedback ${feedback}`}>{feedback==="correct"?"✓ 正确！Great listening.":`正确答案：${words[listeningIndex%words.length].term}`}</div>}<button className="next-button" onClick={()=>{setListeningIndex(i=>i+1);setAnswer("");setFeedback(null);}}>下一题 <ArrowRight size={16}/></button></div></div>
+          <div className="practice-card"><div className="practice-progress"><span>LISTENING · {listeningIndex+1}</span><span>{listeningIndex+1} / 10</span></div><div className="sound-visual"><div className="sound-orb"><AudioLines size={36}/></div><div className="sound-rings"/></div><h2>听一听，你听到了什么？</h2><p>点击播放按钮，仔细听清医学单词的发音。</p><button className="play-button" onClick={()=>playWord(words[listeningIndex%words.length],1)}><Play size={20} fill="currentColor"/> 播放单词</button><div className="listen-hint">American English · en-US</div><div className="practice-divider"/><div className="listen-answer"><label>你听到的单词是什么？</label><input value={answer} onChange={e=>{setAnswer(e.target.value);setFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&setFeedback(normalize(answer)===normalize(words[listeningIndex%words.length].term)?"correct":"wrong")} placeholder="Type the medical term…" /><button className="primary-button full-button" onClick={()=>{const ok=normalize(answer)===normalize(words[listeningIndex%words.length].term);setFeedback(ok?"correct":"wrong");update({...progress,attempts:progress.attempts+1,correct:progress.correct+(ok?1:0)});}}>检查答案</button>{feedback&&<div className={`feedback ${feedback}`}>{feedback==="correct"?"✓ 正确！Great listening.":`正确答案：${words[listeningIndex%words.length].term}`}</div>}<button className="next-button" onClick={()=>{setListeningIndex(i=>i+1);setAnswer("");setFeedback(null);}}>下一题 <ArrowRight size={16}/></button></div></div>
         </div>}
 
         {tab==="dictation" && <div className="page-content narrow-content">
           <div className="page-title-row"><div><div className="eyebrow">ACTIVE RECALL TRAINING</div><h1>听力与默写</h1><p>Practice spelling, meaning, roots and clinical context.</p></div><div className="count-chip">5 MODES</div></div>
           <div className="mode-tabs">{([{id:"word",label:"听音拼写"},{id:"meaning",label:"中文释义"},{id:"definition",label:"英文定义"},{id:"root",label:"词根组合"},{id:"clinical",label:"临床语境"}] as {id:DictationMode;label:string}[]).map(m=><button key={m.id} className={dictationMode===m.id?"mode-active":""} onClick={()=>{setDictationMode(m.id);nextQuestion(m.id);}}>{m.label}</button>)}</div>
-          <div className="practice-card dictation-card"><div className="practice-progress"><span>{promptFor(question,dictationMode).label.toUpperCase()}</span><button className="quiet-button" onClick={()=>nextQuestion()}><RotateCcw size={15}/> 换一题</button></div>{dictationMode==="word"?<><div className="dictation-symbol"><Headphones size={30}/></div><h2>听发音，写出单词</h2><p>点击播放按钮，听完后输入完整的医学术语。</p><button className="play-button" onClick={()=>speak(question.term)}><Volume2 size={19}/> 播放发音</button></>:<><div className="prompt-label">{dictationMode==="meaning"?"CHINESE MEANING":dictationMode==="definition"?"ENGLISH DEFINITION":dictationMode==="root"?"WORD PARTS":"CLINICAL CONTEXT"}</div><div className="dictation-prompt">{promptFor(question,dictationMode).prompt}</div></>}<div className="listen-answer"><label>请输入英文医学术语</label><input value={answer} onChange={e=>{setAnswer(e.target.value);setFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&submitAnswer()} placeholder="Type your answer…" /><button className="primary-button full-button" onClick={submitAnswer} disabled={!answer.trim()}>提交答案 <Check size={16}/></button>{feedback&&<div className={`feedback ${feedback}`}>{feedback==="correct"?"✓ 正确！Well done.":`再记一下：${question.term} — ${question.meaning}`}</div>}</div><div className="answer-hint"><CircleHelp size={15}/> 拼写需完整匹配；大小写和多余空格不影响判分。</div></div>
+          <div className="practice-card dictation-card"><div className="practice-progress"><span>{promptFor(question,dictationMode).label.toUpperCase()}</span><button className="quiet-button" onClick={()=>nextQuestion()}><RotateCcw size={15}/> 换一题</button></div>{dictationMode==="word"?<><div className="dictation-symbol"><Headphones size={30}/></div><h2>听发音，写出单词</h2><p>点击播放按钮，听完后输入完整的医学术语。</p><button className="play-button" onClick={()=>playWord(question,1)}><Volume2 size={19}/> 播放发音</button></>:<><div className="prompt-label">{dictationMode==="meaning"?"CHINESE MEANING":dictationMode==="definition"?"ENGLISH DEFINITION":dictationMode==="root"?"WORD PARTS":"CLINICAL CONTEXT"}</div><div className="dictation-prompt">{promptFor(question,dictationMode).prompt}</div></>}<div className="listen-answer"><label>请输入英文医学术语</label><input value={answer} onChange={e=>{setAnswer(e.target.value);setFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&submitAnswer()} placeholder="Type your answer…" /><button className="primary-button full-button" onClick={submitAnswer} disabled={!answer.trim()}>提交答案 <Check size={16}/></button>{feedback&&<div className={`feedback ${feedback}`}>{feedback==="correct"?"✓ 正确！Well done.":`再记一下：${question.term} — ${question.meaning}`}</div>}</div><div className="answer-hint"><CircleHelp size={15}/> 拼写需完整匹配；大小写和多余空格不影响判分。</div></div>
         </div>}
 
         {tab==="roots" && <div className="page-content">
           <div className="page-title-row"><div><div className="eyebrow">WORD BUILDING BLOCKS</div><h1>词根与词缀</h1><p>Understand how medical terms are constructed.</p></div><div className="count-chip">{wordParts.length} PARTS</div></div>
           <div className="roots-intro"><div className="roots-icon"><Brain size={25}/></div><div><b>拆解医学术语的构成</b><p>掌握常见 combining forms、prefixes 和 suffixes，帮助你理解陌生医学词汇。</p></div></div>
-          <div className="roots-grid">{wordParts.map((p,i)=><div className="root-card" key={i}><span className="root-index">{String(i+1).padStart(2,"0")}</span><b>{p.part}</b><span>{p.meaning}</span><button onClick={()=>speak(p.part.replaceAll("/"," "))}><Volume2 size={14}/> 听发音</button></div>)}</div>
+          <div className="roots-grid">{wordParts.map((p,i)=><div className="root-card" key={i}><span className="root-index">{String(i+1).padStart(2,"0")}</span><b>{p.part}</b><span>{p.meaning}</span><button onClick={()=>playPart(p.part,i)}><Volume2 size={14}/> 听发音</button></div>)}</div>
         </div>}
 
         {tab==="progress" && <div className="page-content">
