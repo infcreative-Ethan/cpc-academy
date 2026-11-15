@@ -12,8 +12,9 @@ import { emptyProgress, getTodayKey, loadProgress, saveProgress, StudyProgress }
 
 type Tab = "home" | "daily" | "words" | "review" | "listen" | "dictation" | "roots" | "progress";
 type DictationMode = "word" | "meaning" | "definition" | "root" | "clinical";
-const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties"];
-const APP_VERSION = "0.2.4";
+type ReviewMode = "dictation" | "zh-en" | "en-zh";
+const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties", "Other"];
+const APP_VERSION = "0.2.5";
 
 type AudioStatus = { message: string; kind: "info" | "success" | "error" };
 
@@ -47,6 +48,13 @@ export default function HomePage() {
   const [listeningIndex, setListeningIndex] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [reviewRounds, setReviewRounds] = useState(3);
+  const [reviewMode, setReviewMode] = useState<ReviewMode>("dictation");
+  const [dictionaryOpen, setDictionaryOpen] = useState(false);
+  const [dictionaryWord, setDictionaryWord] = useState("");
+  const [dictionaryData, setDictionaryData] = useState<Record<string, string>>({});
+  const [dictionaryReady, setDictionaryReady] = useState(false);
+  const [dictionaryTranslation, setDictionaryTranslation] = useState("");
+  const [dictionaryLoading, setDictionaryLoading] = useState(false);
   const [dailyShowList, setDailyShowList] = useState(false);
   const [reviewSessionIds, setReviewSessionIds] = useState<string[]>([]);
   const [reviewActive, setReviewActive] = useState(false);
@@ -111,6 +119,7 @@ export default function HomePage() {
     }
     setProgress(saved);
     setReviewRounds(saved.reviewRounds ?? 3);
+    setReviewMode(saved.reviewMode ?? "dictation");
     setReady(true);
   }, []);
 
@@ -119,28 +128,43 @@ export default function HomePage() {
     saveProgress(next);
   };
 
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/english-dictionary.json")
+      .then(response => response.ok ? response.json() : {})
+      .then((data: Record<string, string>) => {
+        if (!cancelled) {
+          setDictionaryData(data && typeof data === "object" ? data : {});
+          setDictionaryReady(true);
+        }
+      })
+      .catch(() => { if (!cancelled) setDictionaryReady(true); });
+    return () => { cancelled = true; };
+  }, []);
+
+  const allWords = useMemo(() => [...words, ...(progress.customWords ?? [])], [progress.customWords]);
   const dailyWords = useMemo(() => {
-    return progress.dailyIds.map(id=>words.find(w=>w.id===id)).filter((w): w is MedicalWord => Boolean(w));
-  }, [progress.dailyIds]);
+    return progress.dailyIds.map(id=>allWords.find(w=>w.id===id)).filter((w): w is MedicalWord => Boolean(w));
+  }, [progress.dailyIds, allWords]);
   const dailyCurrentWord = dailyWords[progress.dailyStudyIndex] ?? dailyWords[0];
   const dailyPercent = dailyWords.length ? Math.round((progress.dailyCompletedIds.length / dailyWords.length) * 100) : 0;
 
   const reviewPool = useMemo(() => {
     const ids = reviewSessionIds.length ? reviewSessionIds : [...new Set([...progress.dailyIds, ...progress.reviewIds])];
-    const pool = ids.map(id => words.find(w => w.id === id)).filter((w): w is MedicalWord => Boolean(w));
+    const pool = ids.map(id => allWords.find(w => w.id === id)).filter((w): w is MedicalWord => Boolean(w));
     return pool;
-  }, [reviewSessionIds, progress.dailyIds, progress.reviewIds, dailyWords]);
+  }, [reviewSessionIds, progress.dailyIds, progress.reviewIds, allWords]);
   const currentReviewWord = reviewPool[reviewIndex];
 
-  const filteredWords = useMemo(() => words.filter(w => {
+  const filteredWords = useMemo(() => allWords.filter(w => {
     const matchesQuery = !query || [w.term, w.meaning, w.definition, w.definitionZh ?? "", ...w.parts.map(p=>p.part)].join(" ").toLowerCase().includes(query.toLowerCase());
     return matchesQuery && (category === "All" || w.category === category);
-  }), [query, category]);
+  }), [query, category, allWords]);
 
   const dueWords = useMemo(() => {
     const ids = new Set(progress.reviewIds);
-    return words.filter(w=>ids.has(w.id));
-  }, [progress.reviewIds]);
+    return allWords.filter(w=>ids.has(w.id));
+  }, [progress.reviewIds, allWords]);
 
   const accuracy = progress.attempts ? Math.round(progress.correct / progress.attempts * 100) : 0;
   const studiedToday = dailyWords.filter(w=>progress.dailyCompletedIds.includes(w.id)).length;
@@ -156,8 +180,8 @@ export default function HomePage() {
   const generateDailySet = (size: 20 | 30 = progress.dailySize) => {
     const known = new Set(progress.knownIds);
     const due = new Set(progress.reviewIds);
-    const fresh = words.filter(word => !known.has(word.id) && !due.has(word.id));
-    const fallback = words.filter(word => !known.has(word.id));
+    const fresh = allWords.filter(word => !known.has(word.id) && !due.has(word.id));
+    const fallback = allWords.filter(word => !known.has(word.id));
     const source = fresh.length >= size ? fresh : fallback;
     const shuffled = [...source];
     for (let i = shuffled.length - 1; i > 0; i--) {
@@ -214,7 +238,7 @@ export default function HomePage() {
   };
 
   const nextQuestion = (mode = dictationMode) => {
-    const pool = mode === "root" ? words.filter(w=>w.parts.length) : words;
+    const pool = mode === "root" ? allWords.filter(w=>w.parts.length) : allWords;
     const next = pool[Math.floor(Math.random()*pool.length)];
     setQuestion(next);
     setAnswer("");
@@ -248,6 +272,11 @@ export default function HomePage() {
   ];
 
   const changeTab = (next: Tab) => { setTab(next); setMobileMenu(false); setFeedback(null); };
+
+  const chooseReviewMode = (mode: ReviewMode) => {
+    setReviewMode(mode);
+    update({ ...progress, reviewMode: mode });
+  };
 
   const chooseReviewRounds = (rounds: number) => {
     setReviewRounds(rounds);
