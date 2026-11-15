@@ -1,0 +1,10 @@
+{
+  "name": "CPC Academy",
+  "short_name": "CPC Academy",
+  "description": "Bilingual medical vocabulary learning for the US CPC pathway.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f6fa",
+  "theme_color": "#f5f7fb",
+  "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
