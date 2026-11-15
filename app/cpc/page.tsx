@@ -80,7 +80,7 @@ export default function CpcLearningCenter() {
     void player.play().catch(() => setAudioMessage("音频播放失败，请点击后重试。"));
   };
   const audioSlug = (value: string) => value.toLowerCase().normalize("NFKD")
-    .replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "audio";
+    .replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "audio";
   const playTermAudio = (word: typeof words[number], kind: "word" | "definition" = "word") => {
     const index = words.findIndex((item) => item.id === word.id);
     if (index < 0) return;
