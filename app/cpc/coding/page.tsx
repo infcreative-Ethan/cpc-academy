@@ -12,6 +12,7 @@ import {
   codingTracks, codingUnits, codingVersions, codingWorkflow, cpcExamDomains,
   officialCodingResources, type CodingTrack
 } from "@/lib/cpc-professional-curriculum";
+import { codingLessonDetails } from "@/lib/cpc-coding-lesson-content";
 import "./coding.css";
 
 type Tab = "path" | CodingTrack | "workspace" | "exam";
@@ -28,6 +29,7 @@ type Draft = {
 };
 type SavedState = {
   completedLessons: string[];
+  passedCodingLessons: Record<string,{score:number;date:string}>;
   completedCases: string[];
   drafts: Record<string, Draft>;
 };
@@ -44,7 +46,7 @@ const emptyDraft: Draft = {
   rationale: "",
   checks: [false, false, false, false, false, false, false, false],
 };
-const emptySaved: SavedState = { completedLessons: [], completedCases: [], drafts: {} };
+const emptySaved: SavedState = { completedLessons: [], passedCodingLessons: {}, completedCases: [], drafts: {} };
 const tabs: { id: Tab; label: string; en: string }[] = [
   { id: "path", label: "学习路线", en: "Pathway" },
   { id: "icd10", label: "ICD-10-CM", en: "Diagnosis" },
@@ -95,7 +97,8 @@ export default function ProfessionalCodingPage() {
   }, [visibleUnits, search]);
   const selectedCase = practiceCases.find((item) => item.id === caseId) ?? practiceCases[0];
   const currentDraft = saved.drafts[caseId] ?? emptyDraft;
-  const completedLessonCount = saved.completedLessons.length;
+  const completedLessonCount = codingLessonDetails.filter(lesson => (saved.passedCodingLessons?.[lesson.id]?.score ?? 0) >= 80).length;
+  const authoredLessonCount = codingLessonDetails.length;
   const totalLessonCount = codingUnits.reduce((sum, unit) => sum + unit.lessons.length, 0);
   const completedCaseCount = saved.completedCases.length;
   const totalExamQuestions = cpcExamDomains.reduce((sum, item) => sum + item.questions, 0);
@@ -104,15 +107,6 @@ export default function ProfessionalCodingPage() {
     setSaved((prev) => ({
       ...prev,
       drafts: { ...prev.drafts, [caseId]: { ...(prev.drafts[caseId] ?? emptyDraft), ...patch } },
-    }));
-  };
-  const toggleLesson = (unitId: string, lessonIndex: number) => {
-    const id = unitId + ":" + lessonIndex;
-    setSaved((prev) => ({
-      ...prev,
-      completedLessons: prev.completedLessons.includes(id)
-        ? prev.completedLessons.filter((item) => item !== id)
-        : [...prev.completedLessons, id],
     }));
   };
   const selectTab = (next: Tab) => {
@@ -155,9 +149,9 @@ export default function ProfessionalCodingPage() {
 
         <div className="coding-stats">
           <div><BookOpen size={17} /><strong>{codingUnits.length}</strong><span>专业课程单元</span></div>
-          <div><ListChecks size={17} /><strong>{totalLessonCount}</strong><span>学习课时</span></div>
+          <div><ListChecks size={17} /><strong>{authoredLessonCount}</strong><span>已制作详细课时 · 共规划{totalLessonCount}节</span></div>
           <div><FileSearch size={17} /><strong>{practiceCases.length}</strong><span>病例训练</span></div>
-          <div><CheckCircle2 size={17} /><strong>{completedLessonCount}/{totalLessonCount}</strong><span>已完成课时</span></div>
+          <div><CheckCircle2 size={17} /><strong>{completedLessonCount}/{authoredLessonCount}</strong><span>检测通过课时</span></div>
         </div>
 
         <nav className="coding-tabs" aria-label="专业编码课程">
@@ -186,12 +180,13 @@ export default function ProfessionalCodingPage() {
               {codingTracks.map((track, index) => {
                 const units = codingUnits.filter((unit) => unit.track === track.id);
                 const lessons = units.reduce((sum, unit) => sum + unit.lessons.length, 0);
-                const done = units.reduce((sum, unit) => sum + unit.lessons.filter((_, i) => saved.completedLessons.includes(unit.id + ":" + i)).length, 0);
+                const available = codingLessonDetails.filter(item => item.unitId && units.some(unit => unit.id === item.unitId)).length;
+                const done = codingLessonDetails.filter(item => units.some(unit => unit.id === item.unitId) && (saved.passedCodingLessons?.[item.id]?.score ?? 0) >= 80).length;
                 return (
                   <button key={track.id} className="coding-track-card" onClick={() => selectTab(track.id)}>
                     <span className="coding-track-index">0{index + 1}</span><b>{track.title}</b><strong>{track.zh}</strong><p>{track.description}</p>
-                    <div className="coding-progress"><i style={{ width: (lessons ? done / lessons * 100 : 0) + "%" }} /></div>
-                    <small>{done} / {lessons} lessons <ArrowRight size={13} /></small>
+                    <div className="coding-progress"><i style={{ width: (available ? done / available * 100 : 0) + "%" }} /></div>
+                    <small>已掌握 {done}/{available} · 规划{lessons}课时 <ArrowRight size={13} /></small>
                   </button>
                 );
               })}
@@ -199,8 +194,9 @@ export default function ProfessionalCodingPage() {
             <div className="coding-two-col">
               <div className="coding-card">
                 <div className="coding-card-title"><Target size={17} /><b>整体学习进度</b></div>
-                <div className="coding-progress-label"><span>专业编码课时</span><b>{completedLessonCount} / {totalLessonCount}</b></div>
-                <div className="coding-progress"><i style={{ width: (completedLessonCount / Math.max(totalLessonCount, 1) * 100) + "%" }} /></div>
+                <div className="coding-progress-label"><span>已制作专业课程的测验掌握度</span><b>{completedLessonCount} / {authoredLessonCount}</b></div>
+                <div className="coding-progress"><i style={{ width: (completedLessonCount / Math.max(authoredLessonCount, 1) * 100) + "%" }} /></div>
+                <p className="coding-muted">目前规划 {totalLessonCount} 节，已经提供 {authoredLessonCount} 节独立课程；其余课时仅为大纲，不能直接标记掌握。</p>
                 <div className="coding-progress-label"><span>完成病例</span><b>{completedCaseCount} / {practiceCases.length}</b></div>
                 <div className="coding-progress"><i style={{ width: (completedCaseCount / Math.max(practiceCases.length, 1) * 100) + "%" }} /></div>
                 <p className="coding-muted">学习进度保存在本机。清除应用数据或卸载应用可能导致本地记录丢失。</p>
@@ -228,10 +224,11 @@ export default function ProfessionalCodingPage() {
             <div className="coding-learning-layout">
               <aside className="coding-unit-list">
                 {filteredUnits.map((unit) => {
-                  const done = unit.lessons.filter((_, i) => saved.completedLessons.includes(unit.id + ":" + i)).length;
+                  const available = codingLessonDetails.filter(item => item.unitId === unit.id).length;
+                  const done = codingLessonDetails.filter(item => item.unitId === unit.id && (saved.passedCodingLessons?.[item.id]?.score ?? 0) >= 80).length;
                   return (
                     <button key={unit.id} className={activeUnitId === unit.id ? "active" : ""} onClick={() => { setActiveUnitId(unit.id); setQuizChoice(null); setQuizSubmitted(false); }}>
-                      <span>{unit.track.toUpperCase()}</span><b>{unit.zh}</b><small>{done}/{unit.lessons.length} · {unit.duration}</small>
+                      <span>{unit.track.toUpperCase()}</span><b>{unit.zh}</b><small>已掌握 {done}/{available} · 规划{unit.lessons.length}课时</small>
                     </button>
                   );
                 })}
@@ -246,11 +243,14 @@ export default function ProfessionalCodingPage() {
                 <div className="coding-subsection"><b>推荐工作流程</b><ol>{activeUnit.workflow.map((item) => <li key={item}>{item}</li>)}</ol></div>
                 <div className="coding-caution"><ShieldCheck size={16} /><p>{activeUnit.caution}</p></div>
                 <div className="coding-subsection"><b>本单元课时</b>
+                  <p className="coding-muted">已制作课时可进入独立课堂，完成测验后才计入掌握度。尚未制作的课时只显示课程名称。</p>
                   <div className="coding-lesson-list">
                     {activeUnit.lessons.map((lesson, index) => {
                       const id = activeUnit.id + ":" + index;
-                      const done = saved.completedLessons.includes(id);
-                      return <button key={id} className={done ? "done" : ""} onClick={() => toggleLesson(activeUnit.id, index)}><span>{done ? <CheckCircle2 size={16} /> : <span className="coding-lesson-number">{index + 1}</span>}</span><b>{lesson}</b><small>{done ? "已完成" : "标记完成"}</small></button>;
+                      const authored = codingLessonDetails.some(item => item.id === id);
+                      const done = (saved.passedCodingLessons?.[id]?.score ?? 0) >= 80;
+                      return authored ? <Link key={id} href={"/cpc/coding/lesson/?unit=" + activeUnit.id + "&lesson=" + index} className={done ? "done" : ""}><span>{done ? <CheckCircle2 size={16} /> : <span className="coding-lesson-number">{index + 1}</span>}</span><b>{lesson}</b><small>{done ? "已通过" : "进入学习"}</small></Link> :
+                        <div key={id} className="coding-lesson-pending"><span className="coding-lesson-number">{index + 1}</span><b>{lesson}</b><small>详细课时待制作</small></div>;
                     })}
                   </div>
                 </div>

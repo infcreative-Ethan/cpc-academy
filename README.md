@@ -98,3 +98,10 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 3. Study each term on its own focused screen with audio, Chinese meaning, English and Chinese definitions, word parts, and examples.
 4. Navigate backward or forward; completing the final term opens the daily review handoff.
 5. The daily set, chosen size, current index, and completion state are stored locally on the device.
+
+## Professional Coding Individual Lessons (pilot)
+
+- 12 detailed independent professional coding lessons with 24 original quiz questions: ICD-10-CM foundations, Alphabetic Index, and CPT® foundations.
+- `/cpc/coding/lesson/` uses query parameters for static-export-compatible navigation and records mastery after passing knowledge checks.
+- The 100 coding-lesson outline entries remain visible. Entries without authored teaching content are labeled pending rather than being freely marked complete.
+- Previous manual checkmarks are preserved in legacy local storage but are not counted as proven mastery. New mastery is saved in the `passedCodingLessons` field.
