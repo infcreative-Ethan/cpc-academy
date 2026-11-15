@@ -563,21 +563,46 @@ export default function HomePage() {
           <div className="page-title-row"><div><div className="eyebrow">DAILY MULTI-ROUND REVIEW</div><h1>每日多轮复习</h1><p>完成今日新词后，按自己选择的轮数反复回忆与拼写。</p></div><div className="count-chip">{reviewPool.length} TERMS</div></div>
           {!reviewActive && !reviewFinished && <div className="practice-card review-setup">
             <div className="dictation-symbol"><Repeat2 size={28}/></div>
-            <h2>今天复习几轮？</h2>
-            <p>每轮复习今日学习词汇和待复习词汇，共 {reviewPool.length} 个词。</p>
+            <h2>选择长期复习方式</h2>
+            <p>默认以听音默写为主，也可以切换中译英或英译中。系统会记住你的选择。</p>
+            <div className="review-mode-selector">
+              <button className={reviewMode==="dictation"?"review-mode-active":""} onClick={()=>chooseReviewMode("dictation")}><b>默写</b><small>听发音，写出英文单词</small><span>主要模式</span></button>
+              <button className={reviewMode==="zh-en"?"review-mode-active":""} onClick={()=>chooseReviewMode("zh-en")}><b>中译英</b><small>看到中文，写出英文</small></button>
+              <button className={reviewMode==="en-zh"?"review-mode-active":""} onClick={()=>chooseReviewMode("en-zh")}><b>英译中</b><small>看到英文，写出中文</small></button>
+            </div>
+            <h3 className="review-round-title">今天复习几轮？</h3>
+            <p>每轮复习今日新词和长期待复习词汇，共 {reviewPool.length} 个词。</p>
             <div className="round-selector">{[1,2,3,5,10].map(n=><button key={n} className={reviewRounds===n?"round-selected":""} onClick={()=>chooseReviewRounds(n)}>{n} 轮</button>)}</div>
-            <button className="primary-button" onClick={startReview}><Play size={16} fill="currentColor"/> 开始第 1 轮</button>
-            <div className="answer-hint">每轮结束都会记录正确率；答错的词自动加入待复习列表。</div>
+            <button className="primary-button" onClick={startReview} disabled={!reviewPool.length}><Play size={16} fill="currentColor"/> 开始第 1 轮</button>
+            {!reviewPool.length && <div className="answer-hint">请先完成今日新词学习，或在词汇库中将单词加入复习。</div>}
+            <div className="answer-hint">每轮结束都会记录正确率；答错的词自动加入长期待复习列表。</div>
           </div>}
           {reviewActive && currentReviewWord && <div className="practice-card dictation-card">
-            <div className="practice-progress"><span>ROUND {reviewRound} / {reviewRounds}</span><span>{reviewIndex+1} / {reviewPool.length}</span></div>
-            <div className="dictation-symbol"><BookOpen size={28}/></div>
-            <h2>{currentReviewWord.meaning || "根据英文释义回忆医学术语"}</h2>
-            <p>{currentReviewWord.definition}</p>
-            {currentReviewWord.pronunciation && <div className="pronunciation-guide">教材注音：{currentReviewWord.pronunciation}</div>}
-            <button className="play-button" onClick={()=>playWord(currentReviewWord,0.85)}><Volume2 size={18}/> 播放单词</button>
-            <div className="listen-answer"><label>请写出对应的英文医学术语</label><input value={reviewAnswer} onChange={e=>{setReviewAnswer(e.target.value);setReviewFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&submitReviewAnswer()} placeholder="Type the medical term…" /><button className="primary-button full-button" onClick={submitReviewAnswer} disabled={!reviewAnswer.trim() || Boolean(reviewFeedback)}>提交答案 <Check size={16}/></button>
-              {reviewFeedback && <div className={`feedback ${reviewFeedback}`}>{reviewFeedback==="correct"?"✓ 正确！":"正确答案："+currentReviewWord.term}</div>}
+            <div className="practice-progress"><span>ROUND {reviewRound} / {reviewRounds} · {reviewMode==="dictation"?"默写":reviewMode==="zh-en"?"中译英":"英译中"}</span><span>{reviewIndex+1} / {reviewPool.length}</span></div>
+            <div className="dictation-symbol"><PencilLine size={28}/></div>
+            {reviewMode==="dictation" && <>
+              <h2>听音默写</h2><p>先听清发音，再独立写出完整的英文医学术语。</p>
+              {words.some(word=>word.id===currentReviewWord.id)
+                ? <button className="play-button" onClick={()=>playWord(currentReviewWord,0.85)}><Volume2 size={18}/> 播放单词</button>
+                : <div className="dictation-prompt">{currentReviewWord.meaning || currentReviewWord.term}</div>}
+            </>}
+            {reviewMode==="zh-en" && <>
+              <div className="prompt-label">CHINESE → ENGLISH</div>
+              <div className="dictation-prompt">{currentReviewWord.meaning || "暂无中文释义"}</div>
+              <p>根据中文释义，默写对应的英文医学术语。</p>
+            </>}
+            {reviewMode==="en-zh" && <>
+              <div className="prompt-label">ENGLISH → CHINESE</div>
+              <div className="dictation-prompt">{currentReviewWord.term}</div>
+              <p className="review-definition-prompt">{currentReviewWord.definition}</p>
+              <p>写出这个英文医学术语的中文释义。</p>
+            </>}
+            {currentReviewWord.pronunciation && reviewMode!=="en-zh" && <div className="pronunciation-guide">教材注音：{currentReviewWord.pronunciation}</div>}
+            <div className="listen-answer">
+              <label>{reviewMode==="en-zh"?"请输入中文释义":"请写出对应的英文医学术语"}</label>
+              <input value={reviewAnswer} onChange={e=>{setReviewAnswer(e.target.value);setReviewFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&submitReviewAnswer()} placeholder={reviewMode==="en-zh"?"输入中文释义…":"Type the medical term…"} />
+              <button className="primary-button full-button" onClick={submitReviewAnswer} disabled={!reviewAnswer.trim() || Boolean(reviewFeedback)}>提交答案 <Check size={16}/></button>
+              {reviewFeedback && <div className={`feedback ${reviewFeedback}`}>{reviewFeedback==="correct"?"✓ 正确！":(reviewMode==="en-zh"?"参考答案："+currentReviewWord.meaning:"正确答案："+currentReviewWord.term)}</div>}
               <button className="next-button" onClick={advanceReview} disabled={!reviewFeedback}>{reviewIndex+1===reviewPool.length?(reviewRound===reviewRounds?"完成复习":"进入下一轮"):"下一题"} <ArrowRight size={16}/></button>
             </div>
             <div className="answer-hint">本轮正确 {reviewCorrect} / 已答 {reviewAttempts}</div>
