@@ -62,6 +62,7 @@ export default function HomePage() {
   const [reviewMode, setReviewMode] = useState<ReviewMode>("dictation");
   const [dictionaryOpen, setDictionaryOpen] = useState(false);
   const [dictionaryWord, setDictionaryWord] = useState("");
+  const [dictionarySourceTerm, setDictionarySourceTerm] = useState("");
   const [dictionaryData, setDictionaryData] = useState<Record<string, string>>({});
   const [dictionaryReady, setDictionaryReady] = useState(false);
   const [dictionaryTranslation, setDictionaryTranslation] = useState("");
@@ -162,22 +163,23 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!dictionaryOpen || !dictionaryWord || !dictionaryReady) return;
-    const key = normalize(dictionaryWord);
+    const key = dictionaryWord.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim().replace(/\s+/g, " ");
     const translation = dictionaryData[key] ?? dictionaryData[dictionaryWord.toLowerCase()] ?? "";
     setDictionaryTranslation(translation);
     setDictionaryLoading(false);
   }, [dictionaryOpen, dictionaryWord, dictionaryReady, dictionaryData]);
 
-  const lookupDictionaryWord = (word: string) => {
+  const lookupDictionaryWord = (word: string, sourceTerm = selected.term) => {
     setDictionaryWord(word);
+    setDictionarySourceTerm(sourceTerm);
     setDictionaryTranslation("");
     setDictionaryLoading(!dictionaryReady);
     setDictionaryOpen(true);
   };
 
-  const renderDictionaryText = (value: string) => value.split(/([A-Za-z]+(?:[-'][A-Za-z]+)*)/g).map((segment, index) =>
+  const renderDictionaryText = (value: string, sourceTerm = selected.term) => value.split(/([A-Za-z]+(?:[-'][A-Za-z]+)*)/g).map((segment, index) =>
     /^[A-Za-z]/.test(segment)
-      ? <button type="button" className="dictionary-word-link" key={index} onClick={() => lookupDictionaryWord(segment)}>{segment}</button>
+      ? <button type="button" className="dictionary-word-link" key={index} onClick={() => lookupDictionaryWord(segment, sourceTerm)}>{segment}</button>
       : segment
   );
 
@@ -195,8 +197,8 @@ export default function HomePage() {
       id,
       term: dictionaryWord.trim(),
       meaning: dictionaryTranslation.trim(),
-      definition: "Added from the English definition of " + selected.term + ".",
-      definitionZh: "来自医学词汇 " + selected.term + " 的英文定义。",
+      definition: "Added from the English definition of " + (dictionarySourceTerm || selected.term) + ".",
+      definitionZh: "来自医学词汇 " + (dictionarySourceTerm || selected.term) + " 的英文定义。",
       category: "Other",
       parts: [],
       example: "",
@@ -552,9 +554,9 @@ export default function HomePage() {
               {dailyCurrentWord.meaningSource==="machine-translation" && <div className="translation-source">自动翻译参考译名 · 建议结合英文定义核对</div>}
               {dailyCurrentWord.pronunciation && <div className="pronunciation-guide">教材注音：{dailyCurrentWord.pronunciation}</div>}
               <div className="daily-audio-actions"><button className="speaker-button" onClick={()=>playWord(dailyCurrentWord,1)}><Volume2 size={17}/> 美式发音</button><button className="speaker-button" onClick={()=>playWord(dailyCurrentWord,0.75)}>慢速播放</button></div>
-              <div className="daily-detail-section"><div className="definition-heading"><span>ENGLISH DEFINITION · 英文定义</span><button className="inline-audio" onClick={()=>playDefinition(dailyCurrentWord)}><Volume2 size={14}/> 朗读定义</button></div><p>{renderDictionaryText(dailyCurrentWord.definition)}</p>{dailyCurrentWord.definitionZh && <div className="daily-definition-zh"><b>中文解释</b><p>{dailyCurrentWord.definitionZh}</p></div>}</div>
-              <div className="daily-detail-section"><span>WORD PARTS · 词根拆解</span><div className="parts-row">{dailyCurrentWord.parts.map((part,index)=><div className="part-chip" key={index}><b>{part.part}</b><small>{renderDictionaryText(part.meaning)}</small>{part.meaningZh && <small className="part-zh">{part.meaningZh}</small>}</div>)}</div></div>
-              {dailyCurrentWord.example && <div className="daily-detail-section"><span>CLINICAL EXAMPLE · 医学例句</span><p className="example-en">{dailyCurrentWord.example}</p>{dailyCurrentWord.exampleZh && <p className="example-zh">{dailyCurrentWord.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(dailyCurrentWord,1)}><Volume2 size={14}/> 播放例句</button></div></div>}
+              <div className="daily-detail-section"><div className="definition-heading"><span>ENGLISH DEFINITION · 英文定义</span><button className="inline-audio" onClick={()=>playDefinition(dailyCurrentWord)}><Volume2 size={14}/> 朗读定义</button></div><p>{renderDictionaryText(dailyCurrentWord.definition, dailyCurrentWord.term)}</p>{dailyCurrentWord.definitionZh && <div className="daily-definition-zh"><b>中文解释</b><p>{dailyCurrentWord.definitionZh}</p></div>}</div>
+              <div className="daily-detail-section"><span>WORD PARTS · 词根拆解</span><div className="parts-row">{dailyCurrentWord.parts.map((part,index)=><div className="part-chip" key={index}><b>{part.part}</b><small>{renderDictionaryText(part.meaning, dailyCurrentWord.term)}</small>{part.meaningZh && <small className="part-zh">{part.meaningZh}</small>}</div>)}</div></div>
+              {dailyCurrentWord.example && <div className="daily-detail-section"><span>CLINICAL EXAMPLE · 医学例句</span><p className="example-en">{renderDictionaryText(dailyCurrentWord.example, dailyCurrentWord.term)}</p>{dailyCurrentWord.exampleZh && <p className="example-zh">{dailyCurrentWord.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(dailyCurrentWord,1)}><Volume2 size={14}/> 播放例句</button></div></div>}
               <div className="daily-word-actions"><button className="secondary-button" onClick={()=>markReview(dailyCurrentWord)}><RotateCcw size={15}/> 加入复习</button><button className="secondary-button" onClick={()=>markKnown(dailyCurrentWord)}><Check size={15}/> 标记已掌握</button></div>
             </article>
             <div className="daily-word-navigation"><button className="secondary-button" onClick={previousDailyWord} disabled={progress.dailyStudyIndex===0}><ChevronLeft size={17}/> 上一个</button><span>{progress.dailyStudyIndex+1} / {dailyWords.length}</span><button className="primary-button" onClick={nextDailyWord}>{progress.dailyStudyIndex===dailyWords.length-1?"完成今日新词":"下一个"} <ChevronRight size={17}/></button></div>
@@ -566,7 +568,7 @@ export default function HomePage() {
         {tab==="words" && <div className="page-content">
           <div className="page-title-row"><div><div className="eyebrow">MEDICAL TERMINOLOGY</div><h1>医学词汇库</h1><p>Search, study and master medical terms.</p></div><div className="count-chip">{allWords.length} TERMS</div></div>
           <div className="vocab-layout"><div className="vocab-list-panel"><div className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索英文、中文、词根…" /><span>{filteredWords.length}</span></div><div className="category-scroll">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?"filter-active":""}>{c==="All"?"全部":c}</button>)}</div><div className="vocab-list">{filteredWords.map(w=><button key={w.id} className={`vocab-row ${selected.id===w.id?"selected":""}`} onClick={()=>setSelected(w)}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="vocab-row-text"><b>{w.term}</b><small>{w.meaning || w.definition}</small></span><span className="row-status">{progress.knownIds.includes(w.id)?<Check size={16}/>:<span/>}</span></button>)}{filteredWords.length===0&&<div className="empty-state">没有找到匹配词汇。<br/>Try another search.</div>}</div></div>
-          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>playWord(selected,1)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>playWord(selected,0.75)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.meaningSource === "machine-translation" && <div className="translation-source">自动翻译参考译名 · 建议结合英文定义核对</div>}{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><div className="definition-heading"><span>ENGLISH DEFINITION</span><button className="inline-audio" onClick={()=>playDefinition(selected)}><Volume2 size={14}/> 朗读定义</button></div><p>{renderDictionaryText(selected.definition)}</p>{selected.definitionZh && <div className="detail-definition-zh"><span>中文解释</span><p>{selected.definitionZh}</p></div>}</div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{renderDictionaryText(p.meaning)}</small>{p.meaningZh && <small className="part-zh">{p.meaningZh}</small>}</div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{selected.example}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(selected,1)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>playExample(selected,0.75)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">独立预生成的美式英语 MP3 音频 · 离线可播放 · 慢速播放 0.75×。不使用手机 TTS 或语音包。</p><div className="audio-help-actions"><button className="inline-audio" onClick={()=>playWord(selected,1)}><Volume2 size={15}/> 试听当前单词</button></div></div></div>
+          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>playWord(selected,1)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>playWord(selected,0.75)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.meaningSource === "machine-translation" && <div className="translation-source">自动翻译参考译名 · 建议结合英文定义核对</div>}{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><div className="definition-heading"><span>ENGLISH DEFINITION</span><button className="inline-audio" onClick={()=>playDefinition(selected)}><Volume2 size={14}/> 朗读定义</button></div><p>{renderDictionaryText(selected.definition, selected.term)}</p>{selected.definitionZh && <div className="detail-definition-zh"><span>中文解释</span><p>{selected.definitionZh}</p></div>}</div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{renderDictionaryText(p.meaning, selected.term)}</small>{p.meaningZh && <small className="part-zh">{p.meaningZh}</small>}</div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{renderDictionaryText(selected.example, selected.term)}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(selected,1)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>playExample(selected,0.75)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">独立预生成的美式英语 MP3 音频 · 离线可播放 · 慢速播放 0.75×。不使用手机 TTS 或语音包。</p><div className="audio-help-actions"><button className="inline-audio" onClick={()=>playWord(selected,1)}><Volume2 size={15}/> 试听当前单词</button></div></div></div>
         </div>}
 
         {tab==="review" && <div className="page-content narrow-content">
@@ -638,7 +640,7 @@ export default function HomePage() {
         {tab==="roots" && <div className="page-content">
           <div className="page-title-row"><div><div className="eyebrow">WORD BUILDING BLOCKS</div><h1>词根与词缀</h1><p>Understand how medical terms are constructed.</p></div><div className="count-chip">{wordParts.length} PARTS</div></div>
           <div className="roots-intro"><div className="roots-icon"><Brain size={25}/></div><div><b>拆解医学术语的构成</b><p>掌握常见 combining forms、prefixes 和 suffixes，帮助你理解陌生医学词汇。</p></div></div>
-          <div className="roots-grid">{wordParts.map((p,i)=><div className="root-card" key={i}><span className="root-index">{String(i+1).padStart(2,"0")}</span><b>{p.part}</b><span>{renderDictionaryText(p.meaning)}</span>{p.meaningZh && <small className="root-card-zh">{p.meaningZh}</small>}<button onClick={()=>playPart(p.part,i)}><Volume2 size={14}/> 听发音</button></div>)}</div>
+          <div className="roots-grid">{wordParts.map((p,i)=><div className="root-card" key={i}><span className="root-index">{String(i+1).padStart(2,"0")}</span><b>{p.part}</b><span>{renderDictionaryText(p.meaning, "词根词缀表")}</span>{p.meaningZh && <small className="root-card-zh">{p.meaningZh}</small>}<button onClick={()=>playPart(p.part,i)}><Volume2 size={14}/> 听发音</button></div>)}</div>
         </div>}
 
         {tab==="progress" && <div className="page-content">
