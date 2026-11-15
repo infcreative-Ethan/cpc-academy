@@ -2,27 +2,29 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity, ArrowRight, AudioLines, BookOpen, Brain, Check, ChevronDown,
+  Activity, ArrowRight, AudioLines, BookOpen, Brain, Check, ChevronDown, Download,
   CircleHelp, Clock3, Flame, Headphones, Home, Layers3, ListChecks, Menu,
-  Mic2, PencilLine, Play, RotateCcw, Search, Sparkles, Target, Volume2, X
+  Mic2, PencilLine, Play, Repeat2, RotateCcw, Search, Sparkles, Target, Volume2, X
 } from "lucide-react";
-import { MedicalWord, WordCategory, wordParts, words } from "@/lib/words";
+import { MedicalWord, WordCategory } from "@/lib/words";
+import { wordParts, words } from "@/lib/book-words";
 import { emptyProgress, getTodayKey, loadProgress, saveProgress, StudyProgress } from "@/lib/progress";
 
 type Tab = "home" | "words" | "listen" | "dictation" | "roots" | "progress";
 type DictationMode = "word" | "meaning" | "definition" | "root" | "clinical";
 const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties"];
+const APP_VERSION = "0.2.0";
 
-function speak(text: string) {
+function speak(text: string, rate = 0.88) {
   if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
   const voices = window.speechSynthesis.getVoices();
-  const american = voices.find(v => v.lang.toLowerCase() === "en-us" && /natural|enhanced|us|american/i.test(v.name))
-    || voices.find(v => v.lang.toLowerCase() === "en-us");
+  const american = voices.find(v => v.lang.toLowerCase().startsWith("en-us") && /google|natural|enhanced|us|american/i.test(v.name))
+    || voices.find(v => v.lang.toLowerCase().startsWith("en-us"));
   if (american) utterance.voice = american;
   utterance.lang = "en-US";
-  utterance.rate = 0.88;
+  utterance.rate = rate;
   utterance.pitch = 1;
   window.speechSynthesis.speak(utterance);
   return true;
@@ -46,6 +48,18 @@ export default function HomePage() {
   const [feedback, setFeedback] = useState<"correct" | "wrong" | null>(null);
   const [listeningIndex, setListeningIndex] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
+  const [reviewRounds, setReviewRounds] = useState(3);
+  const [reviewActive, setReviewActive] = useState(false);
+  const [reviewFinished, setReviewFinished] = useState(false);
+  const [reviewRound, setReviewRound] = useState(1);
+  const [reviewIndex, setReviewIndex] = useState(0);
+  const [reviewAnswer, setReviewAnswer] = useState("");
+  const [reviewFeedback, setReviewFeedback] = useState<"correct" | "wrong" | null>(null);
+  const [reviewCorrect, setReviewCorrect] = useState(0);
+  const [reviewAttempts, setReviewAttempts] = useState(0);
+  const [reviewRoundResults, setReviewRoundResults] = useState<{round:number;correct:number;total:number}[]>([]);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<{message:string;url?:string}|null>(null);
 
   useEffect(() => {
     let saved = loadProgress();
@@ -56,6 +70,7 @@ export default function HomePage() {
       saveProgress(saved);
     }
     setProgress(saved);
+    setReviewRounds(saved.reviewRounds ?? 3);
     setReady(true);
   }, []);
 
@@ -68,6 +83,12 @@ export default function HomePage() {
     const ids = progress.dailyIds.length ? progress.dailyIds : words.slice(0,20).map(w=>w.id);
     return ids.map(id=>words.find(w=>w.id===id)).filter((w): w is MedicalWord => Boolean(w));
   }, [progress.dailyIds]);
+
+  const reviewPool = useMemo(() => {
+    const ids = [...new Set([...progress.dailyIds, ...progress.reviewIds])];
+    const pool = ids.map(id => words.find(w => w.id === id)).filter((w): w is MedicalWord => Boolean(w));
+    return pool.length ? pool : dailyWords;
+  }, [progress.dailyIds, progress.reviewIds, dailyWords]);
 
   const filteredWords = useMemo(() => words.filter(w => {
     const matchesQuery = !query || [w.term, w.meaning, w.definition, ...w.parts.map(p=>p.part)].join(" ").toLowerCase().includes(query.toLowerCase());
@@ -115,6 +136,7 @@ export default function HomePage() {
   const navItems: { id: Tab; label: string; en: string; icon: typeof Home }[] = [
     { id:"home", label:"首页", en:"Today", icon:Home },
     { id:"words", label:"词汇库", en:"Vocabulary", icon:BookOpen },
+    { id:"review", label:"复习", en:"Review Rounds", icon:Repeat2 },
     { id:"listen", label:"听力", en:"Listening", icon:Headphones },
     { id:"dictation", label:"默写", en:"Dictation", icon:PencilLine },
     { id:"roots", label:"词根", en:"Word Parts", icon:Layers3 },
@@ -122,6 +144,96 @@ export default function HomePage() {
   ];
 
   const changeTab = (next: Tab) => { setTab(next); setMobileMenu(false); setFeedback(null); };
+
+  const chooseReviewRounds = (rounds: number) => {
+    setReviewRounds(rounds);
+    update({ ...progress, reviewRounds: rounds });
+  };
+
+  const startReview = () => {
+    setReviewActive(true);
+    setReviewFinished(false);
+    setReviewRound(1);
+    setReviewIndex(0);
+    setReviewAnswer("");
+    setReviewFeedback(null);
+    setReviewCorrect(0);
+    setReviewAttempts(0);
+    setReviewRoundResults([]);
+    changeTab("review");
+  };
+
+  const submitReviewAnswer = () => {
+    if (!currentReviewWord || !reviewAnswer.trim() || reviewFeedback) return;
+    const correct = normalize(reviewAnswer) === normalize(currentReviewWord.term);
+    setReviewFeedback(correct ? "correct" : "wrong");
+    setReviewAttempts(value => value + 1);
+    if (correct) setReviewCorrect(value => value + 1);
+    update({
+      ...progress,
+      attempts: progress.attempts + 1,
+      correct: progress.correct + (correct ? 1 : 0),
+      reviewIds: correct
+        ? progress.reviewIds.filter(id => id !== currentReviewWord.id)
+        : Array.from(new Set([...progress.reviewIds, currentReviewWord.id])),
+    });
+  };
+
+  const advanceReview = () => {
+    if (!reviewFeedback) return;
+    if (reviewIndex + 1 < reviewPool.length) {
+      setReviewIndex(value => value + 1);
+      setReviewAnswer("");
+      setReviewFeedback(null);
+      return;
+    }
+    const date = getTodayKey();
+    const result = { date, round: reviewRound, correct: reviewCorrect, total: reviewAttempts };
+    const results = [...reviewRoundResults, { round: reviewRound, correct: reviewCorrect, total: reviewAttempts }];
+    setReviewRoundResults(results);
+    update({
+      ...progress,
+      reviewHistory: [...progress.reviewHistory.filter(item => !(item.date === date && item.round === reviewRound)), result].slice(-200),
+    });
+    if (reviewRound >= reviewRounds) {
+      setReviewActive(false);
+      setReviewFinished(true);
+    } else {
+      setReviewRound(value => value + 1);
+      setReviewIndex(0);
+      setReviewAnswer("");
+      setReviewFeedback(null);
+      setReviewCorrect(0);
+      setReviewAttempts(0);
+    }
+  };
+
+  const checkForUpdates = async () => {
+    setCheckingUpdate(true);
+    setUpdateInfo(null);
+    const actionsUrl = "https://github.com/infcreative-Ethan/cpc-academy/actions/workflows/android-apk.yml";
+    try {
+      const response = await fetch("https://api.github.com/repos/infcreative-Ethan/cpc-academy/actions/workflows/android-apk.yml/runs?branch=main&status=completed&per_page=1", {
+        headers: { Accept: "application/vnd.github+json" },
+      });
+      if (!response.ok) throw new Error("GitHub API request failed");
+      const data = await response.json();
+      const run = data.workflow_runs?.[0];
+      if (!run) {
+        setUpdateInfo({ message: "暂时没有可下载的 APK 构建记录。", url: actionsUrl });
+      } else if (run.conclusion !== "success") {
+        setUpdateInfo({ message: "最近一次 APK 构建未成功，点击查看构建日志。", url: run.html_url || actionsUrl });
+      } else {
+        setUpdateInfo({ message: `最新 APK 构建完成：${new Date(run.updated_at).toLocaleDateString("zh-CN")}`, url: run.html_url || actionsUrl });
+      }
+    } catch {
+      setUpdateInfo({ message: "检查更新失败，可打开 GitHub 构建页面查看。", url: actionsUrl });
+    } finally {
+      setCheckingUpdate(false);
+    }
+  };
+
+  const currentReviewWord = reviewPool[reviewIndex];
 
   if (!ready) return <main className="loading-screen"><div className="brand-mark">C</div><p>CPC Academy 正在加载…</p></main>;
 
@@ -142,23 +254,54 @@ export default function HomePage() {
         <header className="topbar">
           <button className="icon-button mobile-only" onClick={()=>setMobileMenu(!mobileMenu)} aria-label="打开菜单"><Menu size={21}/></button>
           <div className="breadcrumb">CPC Academy <span>/</span> {navItems.find(n=>n.id===tab)?.en}</div>
-          <div className="top-actions"><span className="language-pill">中 / EN</span><div className="avatar">E</div></div>
+          <div className="top-actions"><button className="update-button" onClick={checkForUpdates} disabled={checkingUpdate}><Download size={14}/>{checkingUpdate ? "检查中…" : "检查更新"}</button><span className="language-pill">中 / EN</span><div className="avatar">E</div></div>
         </header>
+        {updateInfo && <div className="update-notice"><span>{updateInfo.message}</span>{updateInfo.url && <a href={updateInfo.url} target="_blank" rel="noreferrer">打开 APK 下载页</a>}<button onClick={()=>setUpdateInfo(null)} aria-label="关闭">×</button></div>}
 
         {tab==="home" && <div className="page-content">
           <div className="welcome-row"><div><div className="eyebrow"><Sparkles size={14}/> YOUR DAILY STUDY PLAN</div><h1>今天继续积累专业词汇。</h1><p>Build medical English, one term at a time.</p></div><div className="date-chip"><Clock3 size={15}/>{new Intl.DateTimeFormat("zh-CN",{month:"long",day:"numeric",weekday:"short"}).format(new Date())}</div></div>
           <div className="hero-card"><div className="hero-copy"><span className="hero-kicker">CPC ACADEMY · VOCABULARY</span><h2>Medical terminology<br/><em>starts here.</em></h2><p>医学术语 · 美式发音 · 听力默写 · 词根拆解</p><button className="primary-button" onClick={()=>changeTab("words")}>开始今日学习 <ArrowRight size={17}/></button></div><div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-cross">+</div><div className="hero-word">cardi<span>/</span>o</div><div className="hero-caption">HEART · 心脏</div></div></div>
           <div className="stats-grid"><div className="stat-card"><div className="stat-icon purple"><BookOpen size={18}/></div><span>已掌握词汇</span><strong>{progress.knownIds.length}<small> / {words.length}</small></strong><div className="stat-note">Words learned</div></div><div className="stat-card"><div className="stat-icon orange"><Flame size={18}/></div><span>待复习</span><strong>{dueWords.length}</strong><div className="stat-note">Words to review</div></div><div className="stat-card"><div className="stat-icon green"><Target size={18}/></div><span>今日新词</span><strong>{studiedToday}<small> / 20</small></strong><div className="stat-note">Daily target</div></div><div className="stat-card"><div className="stat-icon blue"><Activity size={18}/></div><span>练习正确率</span><strong>{accuracy}<small>%</small></strong><div className="stat-note">Practice accuracy</div></div></div>
           <div className="section-heading"><div><h3>今日学习任务</h3><p>Today&apos;s learning tasks</p></div><span className="section-link">{studiedToday}/20 completed</span></div>
-          <div className="task-grid"><button className="task-card" onClick={()=>changeTab("words")}><div className="task-top"><div className="task-icon purple"><BookOpen size={20}/></div><span className="task-time">20–25 min</span></div><h4>学习 20 个新单词</h4><p>词义、英文定义、例句与词根</p><div className="task-progress"><span style={{width:`${Math.min(100,studiedToday/20*100)}%`}}/></div><div className="task-foot">{studiedToday} / 20 <ArrowRight size={16}/></div></button><button className="task-card" onClick={()=>changeTab("listen")}><div className="task-top"><div className="task-icon blue"><Headphones size={20}/></div><span className="task-time">10 min</span></div><h4>医学英语听力</h4><p>听辨医学术语，熟悉美式发音</p><div className="task-foot">开始训练 <ArrowRight size={16}/></div></button><button className="task-card" onClick={()=>changeTab("dictation")}><div className="task-top"><div className="task-icon orange"><PencilLine size={20}/></div><span className="task-time">15 min</span></div><h4>听音与拼写默写</h4><p>听单词、辨词根、练习准确拼写</p><div className="task-foot">开始训练 <ArrowRight size={16}/></div></button></div>
+          <div className="task-grid"><button className="task-card" onClick={()=>changeTab("words")}><div className="task-top"><div className="task-icon purple"><BookOpen size={20}/></div><span className="task-time">20–25 min</span></div><h4>学习 20 个新单词</h4><p>词义、英文定义、例句与词根</p><div className="task-progress"><span style={{width:`${Math.min(100,studiedToday/20*100)}%`}}/></div><div className="task-foot">{studiedToday} / 20 <ArrowRight size={16}/></div></button><button className="task-card" onClick={()=>changeTab("listen")}><div className="task-top"><div className="task-icon blue"><Headphones size={20}/></div><span className="task-time">10 min</span></div><h4>医学英语听力</h4><p>听辨医学术语，熟悉美式发音</p><div className="task-foot">开始训练 <ArrowRight size={16}/></div></button><button className="task-card" onClick={()=>changeTab("dictation")}><div className="task-top"><div className="task-icon orange"><PencilLine size={20}/></div><span className="task-time">15 min</span></div><h4>听音与拼写默写</h4><p>听单词、辨词根、练习准确拼写</p><div className="task-foot">开始训练 <ArrowRight size={16}/></div></button><button className="task-card" onClick={startReview}><div className="task-top"><div className="task-icon green"><Repeat2 size={20}/></div><span className="task-time">{reviewRounds} rounds</span></div><h4>今日多轮复习</h4><p>完成新词后，自选复习轮数并逐轮检查掌握情况</p><div className="task-foot">开始复习 <ArrowRight size={16}/></div></button></div>
           <div className="section-heading"><div><h3>今日单词预览</h3><p>Daily vocabulary preview</p></div><button className="text-button" onClick={()=>changeTab("words")}>查看全部 <ArrowRight size={15}/></button></div>
-          <div className="word-preview">{dailyWords.slice(0,5).map(w=><button key={w.id} className="preview-row" onClick={()=>{setSelected(w);changeTab("words");}}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="preview-term"><b>{w.term}</b><small>{w.definition}</small></span><span className="preview-zh">{w.meaning}</span><ChevronDown className="rotate-icon" size={17}/></button>)}</div>
+          <div className="word-preview">{dailyWords.slice(0,5).map(w=><button key={w.id} className="preview-row" onClick={()=>{setSelected(w);changeTab("words");}}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="preview-term"><b>{w.term}</b><small>{w.definition}</small></span><span className="preview-zh">{w.meaning || "查看英文释义"}</span><ChevronDown className="rotate-icon" size={17}/></button>)}</div>
         </div>}
 
         {tab==="words" && <div className="page-content">
           <div className="page-title-row"><div><div className="eyebrow">MEDICAL TERMINOLOGY</div><h1>医学词汇库</h1><p>Search, study and master medical terms.</p></div><div className="count-chip">{words.length} TERMS</div></div>
-          <div className="vocab-layout"><div className="vocab-list-panel"><div className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索英文、中文、词根…" /><span>{filteredWords.length}</span></div><div className="category-scroll">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?"filter-active":""}>{c==="All"?"全部":c}</button>)}</div><div className="vocab-list">{filteredWords.map(w=><button key={w.id} className={`vocab-row ${selected.id===w.id?"selected":""}`} onClick={()=>setSelected(w)}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="vocab-row-text"><b>{w.term}</b><small>{w.meaning}</small></span><span className="row-status">{progress.knownIds.includes(w.id)?<Check size={16}/>:<span/>}</span></button>)}{filteredWords.length===0&&<div className="empty-state">没有找到匹配词汇。<br/>Try another search.</div>}</div></div>
-          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><button className="speaker-button" onClick={()=>speak(selected.term)}><Volume2 size={18}/> 听美式发音</button></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning}</div><div className="detail-definition"><span>ENGLISH DEFINITION</span><p>{selected.definition}</p></div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{p.meaning}</small></div>)}</div></div><div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{selected.example}</p><p className="example-zh">{selected.exampleZh}</p><button className="inline-audio" onClick={()=>speak(selected.example)}><Volume2 size={15}/> 播放例句</button></div><div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">发音由设备浏览器的 en-US 语音合成提供；实际音色取决于设备可用语音。</p></div></div>
+          <div className="vocab-layout"><div className="vocab-list-panel"><div className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索英文、中文、词根…" /><span>{filteredWords.length}</span></div><div className="category-scroll">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?"filter-active":""}>{c==="All"?"全部":c}</button>)}</div><div className="vocab-list">{filteredWords.map(w=><button key={w.id} className={`vocab-row ${selected.id===w.id?"selected":""}`} onClick={()=>setSelected(w)}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="vocab-row-text"><b>{w.term}</b><small>{w.meaning || w.definition}</small></span><span className="row-status">{progress.knownIds.includes(w.id)?<Check size={16}/>:<span/>}</span></button>)}{filteredWords.length===0&&<div className="empty-state">没有找到匹配词汇。<br/>Try another search.</div>}</div></div>
+          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>speak(selected.term,0.88)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>speak(selected.term,0.65)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><span>ENGLISH DEFINITION</span><p>{selected.definition}</p></div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{p.meaning}</small></div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{selected.example}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>speak(selected.example,0.88)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>speak(selected.example,0.65)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">使用设备提供的 en-US 语音合成；实际音色取决于 Android 已安装的英语语音包。教材注音供核对读音。</p></div></div>
+        </div>}
+
+        {tab==="review" && <div className="page-content narrow-content">
+          <div className="page-title-row"><div><div className="eyebrow">DAILY MULTI-ROUND REVIEW</div><h1>每日多轮复习</h1><p>完成今日新词后，按自己选择的轮数反复回忆与拼写。</p></div><div className="count-chip">{reviewPool.length} TERMS</div></div>
+          {!reviewActive && !reviewFinished && <div className="practice-card review-setup">
+            <div className="dictation-symbol"><Repeat2 size={28}/></div>
+            <h2>今天复习几轮？</h2>
+            <p>每轮复习今日学习词汇和待复习词汇，共 {reviewPool.length} 个词。</p>
+            <div className="round-selector">{[1,2,3,5,10].map(n=><button key={n} className={reviewRounds===n?"round-selected":""} onClick={()=>chooseReviewRounds(n)}>{n} 轮</button>)}</div>
+            <button className="primary-button" onClick={startReview}><Play size={16} fill="currentColor"/> 开始第 1 轮</button>
+            <div className="answer-hint">每轮结束都会记录正确率；答错的词自动加入待复习列表。</div>
+          </div>}
+          {reviewActive && currentReviewWord && <div className="practice-card dictation-card">
+            <div className="practice-progress"><span>ROUND {reviewRound} / {reviewRounds}</span><span>{reviewIndex+1} / {reviewPool.length}</span></div>
+            <div className="dictation-symbol"><BookOpen size={28}/></div>
+            <h2>{currentReviewWord.meaning || "根据英文释义回忆医学术语"}</h2>
+            <p>{currentReviewWord.definition}</p>
+            {currentReviewWord.pronunciation && <div className="pronunciation-guide">教材注音：{currentReviewWord.pronunciation}</div>}
+            <button className="play-button" onClick={()=>speak(currentReviewWord.term,0.78)}><Volume2 size={18}/> 播放单词</button>
+            <div className="listen-answer"><label>请写出对应的英文医学术语</label><input value={reviewAnswer} onChange={e=>{setReviewAnswer(e.target.value);setReviewFeedback(null);}} onKeyDown={e=>e.key==="Enter"&&submitReviewAnswer()} placeholder="Type the medical term…" /><button className="primary-button full-button" onClick={submitReviewAnswer} disabled={!reviewAnswer.trim() || Boolean(reviewFeedback)}>提交答案 <Check size={16}/></button>
+              {reviewFeedback && <div className={`feedback ${reviewFeedback}`}>{reviewFeedback==="correct"?"✓ 正确！":"正确答案："+currentReviewWord.term}</div>}
+              <button className="next-button" onClick={advanceReview} disabled={!reviewFeedback}>{reviewIndex+1===reviewPool.length?(reviewRound===reviewRounds?"完成复习":"进入下一轮"):"下一题"} <ArrowRight size={16}/></button>
+            </div>
+            <div className="answer-hint">本轮正确 {reviewCorrect} / 已答 {reviewAttempts}</div>
+          </div>}
+          {reviewFinished && <div className="practice-card review-results">
+            <div className="dictation-symbol"><Check size={28}/></div><h2>今日复习完成</h2><p>已完成 {reviewRounds} 轮，每轮共复习 {reviewPool.length} 个词。</p>
+            <div className="round-results">{reviewRoundResults.map(result=><div key={result.round}><span>第 {result.round} 轮</span><b>{result.correct} / {result.total}</b><small>{result.total?Math.round(result.correct/result.total*100):0}%</small></div>)}</div>
+            <button className="primary-button" onClick={startReview}><Repeat2 size={16}/> 再复习一组</button>
+          </div>}
         </div>}
 
         {tab==="listen" && <div className="page-content narrow-content">
@@ -182,10 +325,10 @@ export default function HomePage() {
           <div className="page-title-row"><div><div className="eyebrow">YOUR LEARNING ANALYTICS</div><h1>学习进度</h1><p>Track your vocabulary growth and practice accuracy.</p></div><div className="count-chip">LOCAL DATA</div></div>
           <div className="progress-overview"><div className="progress-ring" style={{background:`conic-gradient(#6759d8 ${words.length?progress.knownIds.length/words.length*360:0}deg,#e9eaf1 0deg)`}}><div><b>{Math.round(progress.knownIds.length/words.length*100)}%</b><span>掌握率</span></div></div><div className="progress-copy"><h2>持续学习，逐步建立词汇基础。</h2><p>你的学习记录保存在当前设备浏览器中。</p><div className="progress-metrics"><span><b>{progress.knownIds.length}</b> 已掌握</span><span><b>{dueWords.length}</b> 待复习</span><span><b>{progress.attempts}</b> 总练习</span><span><b>{accuracy}%</b> 正确率</span></div></div></div>
           <div className="section-heading"><div><h3>需要加强的词汇</h3><p>Review queue</p></div><span className="section-link">{dueWords.length} terms</span></div>
-          <div className="word-preview">{dueWords.length?dueWords.map(w=><button key={w.id} className="preview-row" onClick={()=>{setSelected(w);changeTab("words");}}><span className="word-initial"><RotateCcw size={16}/></span><span className="preview-term"><b>{w.term}</b><small>{w.definition}</small></span><span className="preview-zh">{w.meaning}</span><ArrowRight size={16}/></button>):<div className="empty-state">目前没有待复习词汇。完成练习后，答错的词会自动加入这里。</div>}</div>
+          <div className="word-preview">{dueWords.length?dueWords.map(w=><button key={w.id} className="preview-row" onClick={()=>{setSelected(w);changeTab("words");}}><span className="word-initial"><RotateCcw size={16}/></span><span className="preview-term"><b>{w.term}</b><small>{w.definition}</small></span><span className="preview-zh">{w.meaning || "查看英文释义"}</span><ArrowRight size={16}/></button>):<div className="empty-state">目前没有待复习词汇。完成练习后，答错的词会自动加入这里。</div>}</div>
           <button className="reset-button" onClick={()=>{if(window.confirm("确定清空本设备上的 CPC Academy 学习记录吗？")){update(emptyProgress);}}}>清空本地学习记录</button>
         </div>}
-        <footer className="page-footer">CPC ACADEMY <span>·</span> PERSONAL STUDY EDITION <span>·</span> V0.1</footer>
+        <footer className="page-footer">CPC ACADEMY <span>·</span> PERSONAL STUDY EDITION <span>·</span> V{APP_VERSION}</footer>
       </section>
 
       <nav className="mobile-nav">{navItems.slice(0,5).map(item=>{const Icon=item.icon;return <button key={item.id} className={tab===item.id?"mobile-active":""} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}</span></button>;})}</nav>
