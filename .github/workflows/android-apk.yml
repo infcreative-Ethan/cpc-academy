@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: cpc-academy-android-\${{ github.ref }}
+  group: cpc-academy-android-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -98,11 +98,11 @@ jobs:
       - name: Publish installable APK GitHub prerelease
         if: github.ref == 'refs/heads/main'
         env:
-          GH_TOKEN: \${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk CPC-Academy.apk
-          TAG="v1.0.0-beta.\${{ github.run_number }}"
-          TITLE="CPC Academy V1.0 Beta — Build #\${{ github.run_number }}"
+          TAG="v1.0.0-beta.${{ github.run_number }}"
+          TITLE="CPC Academy V1.0 Beta — Build #${{ github.run_number }}"
           NOTES="CPC Learning Center beta. Includes the existing medical vocabulary and audio study tools, 22-chapter textbook navigator, anatomy learning map, simulated clinical documentation cases, coding-set foundations, and offline dictionary. Educational use only; verify real coding against current official references."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" CPC-Academy.apk --clobber
