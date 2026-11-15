@@ -44,7 +44,7 @@ def main() -> None:
     )
     print("Downloading ECDICT source for offline dictionary build...")
     with urllib.request.urlopen(request, timeout=180) as response:
-        stream = io.TextIOWrapper(response, encoding="utf-8", newline="")
+        stream = io.TextIOWrapper(response, encoding="utf-8-sig", newline="")
         reader = csv.DictReader(stream)
         csv.field_size_limit(2**20)
         for row in reader:
