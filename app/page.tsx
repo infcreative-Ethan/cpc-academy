@@ -14,7 +14,7 @@ type Tab = "home" | "daily" | "words" | "review" | "listen" | "dictation" | "roo
 type DictationMode = "word" | "meaning" | "definition" | "root" | "clinical";
 type ReviewMode = "dictation" | "zh-en" | "en-zh";
 const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties", "Other"];
-const APP_VERSION = "0.2.5";
+const APP_VERSION = "1.0.0-beta.1";
 
 type AudioStatus = { message: string; kind: "info" | "success" | "error" };
 
@@ -501,8 +501,9 @@ export default function HomePage() {
         <div className="side-label">学习中心 · LEARNING</div>
         <nav className="side-nav">
           {navItems.map(item=>{ const Icon=item.icon; return <button key={item.id} className={`nav-item ${tab===item.id?"active":""}`} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}<small>{item.en}</small></span>{tab===item.id&&<span className="nav-dot"/>}</button>; })}
+          <a className="nav-item cpc-nav-link" href="/cpc/"><span className="cpc-nav-badge">C</span><span>编码学习中心<small>CPC Learning Center</small></span></a>
         </nav>
-        <div className="sidebar-bottom"><div className="daily-mini"><div className="daily-mini-icon"><Target size={18}/></div><div><b>每日目标</b><span>{dailyTarget} new words</span></div><strong>{studiedToday}/{dailyTarget}</strong></div><div className="sidebar-foot">CPC Academy <span>V0.2.5 · Dictionary + review</span></div></div>
+        <div className="sidebar-bottom"><div className="daily-mini"><div className="daily-mini-icon"><Target size={18}/></div><div><b>每日目标</b><span>{dailyTarget} new words</span></div><strong>{studiedToday}/{dailyTarget}</strong></div><div className="sidebar-foot">CPC Academy <span>V1.0.0-beta.1 · Dictionary + review</span></div></div>
       </aside>
 
       {mobileMenu && <button aria-label="关闭菜单" className="scrim" onClick={()=>setMobileMenu(false)}/>}
@@ -672,7 +673,7 @@ export default function HomePage() {
         <footer className="page-footer">CPC ACADEMY <span>·</span> PERSONAL STUDY EDITION <span>·</span> V{APP_VERSION}</footer>
       </section>
 
-      <nav className="mobile-nav">{navItems.slice(0,5).map(item=>{const Icon=item.icon;return <button key={item.id} className={tab===item.id?"mobile-active":""} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}</span></button>;})}</nav>
+      <nav className="mobile-nav">{navItems.slice(0,5).map(item=>{const Icon=item.icon;return <button key={item.id} className={tab===item.id?"mobile-active":""} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}</span></button>;})}<a className="cpc-mobile-link" href="/cpc/"><span>C</span><small>CPC</small></a></nav>
     </main>
   );
 }
