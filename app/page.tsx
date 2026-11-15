@@ -34,7 +34,7 @@ function normalize(value: string) {
 }
 
 function normalizeChinese(value: string) {
-  return value.toLowerCase().replace(/[\\s，。；、！？：,.!?;:()（）\\[\\]{}"'“”‘’]/g, "");
+  return value.toLowerCase().replace(/[\s，。；、！？：,.!?;:()（）\[\]{}"'“”‘’]/g, "");
 }
 
 function matchesChineseMeaning(answer: string, expected: string) {
