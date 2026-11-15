@@ -1,6 +1,6 @@
-export type WordCategory = "Foundations" | "Body Systems" | "Conditions" | "Procedures" | "Specialties";
+export type WordCategory = "Foundations" | "Body Systems" | "Conditions" | "Procedures" | "Specialties" | "Other";
 
-export type WordPart = { part: string; meaning: string };
+export type WordPart = { part: string; meaning: string; meaningZh?: string };
 
 export type MedicalWord = {
   id: string;
