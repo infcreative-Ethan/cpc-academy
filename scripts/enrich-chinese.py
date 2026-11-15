@@ -109,15 +109,15 @@ def google_translate(text: str) -> str:
     })
     url = "https://translate.googleapis.com/translate_a/single?" + query
     last_error: Exception | None = None
-    for attempt in range(4):
+    for attempt in range(2):
         try:
             request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 CPC-Academy"})
-            with urllib.request.urlopen(request, timeout=25) as response:
+            with urllib.request.urlopen(request, timeout=12) as response:
                 payload = json.loads(response.read().decode("utf-8"))
             return "".join(part[0] for part in (payload[0] or []) if part and part[0]).strip()
         except Exception as error:
             last_error = error
-            time.sleep((attempt + 1) * 1.25)
+            time.sleep(0.5)
     raise RuntimeError(f"Google translation failed: {last_error}")
 
 
@@ -178,7 +178,7 @@ def main() -> None:
         print(f"Machine-translation fallback: {len(tasks)} requests", flush=True)
         completed = 0
         failures = 0
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
             future_map = {executor.submit(google_translate, text): (key, index) for key, index, text in tasks}
             for future in concurrent.futures.as_completed(future_map):
                 key, index = future_map[future]
@@ -199,6 +199,12 @@ def main() -> None:
                 if completed % 100 == 0 or completed == len(tasks):
                     CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
                     print(f"Translated {completed}/{len(tasks)}; failures={failures}", flush=True)
+                if failures >= 16:
+                    print("Stopping machine-translation fallback after repeated service errors; dictionary matches will still be retained.", flush=True)
+                    for pending in future_map:
+                        if not pending.done():
+                            pending.cancel()
+                    break
 
     # Reapply cached translations to items whose exact dictionary match is absent.
     for item in terms:
