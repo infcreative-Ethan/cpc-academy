@@ -40,8 +40,10 @@ def synthesize_mp3(voice: PiperVoice, text: str, destination: Path, temp_dir: Pa
         [
             "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
             "-i", str(wav_path),
-            "-codec:a", "libmp3lame", "-b:a", "48k",
+            "-af", "adelay=delays=300:all=1,apad=pad_dur=0.15",
+            "-codec:a", "libmp3lame", "-b:a", "64k",
             "-ar", "22050", "-ac", "1",
+            "-write_xing", "1",
             str(destination),
         ],
         check=True,
@@ -142,7 +144,9 @@ def main() -> None:
     manifest = {
         "voice": "en_US-kristin-medium",
         "accent": "en-US",
-        "format": "MP3, 22050 Hz, mono, 48 kbps",
+        "format": "MP3, 22050 Hz, mono, 64 kbps",
+        "leading_silence_ms": 300,
+        "trailing_silence_ms": 150,
         "offline": True,
         "counts": generated,
         "total": sum(generated.values()),
