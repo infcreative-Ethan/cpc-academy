@@ -411,6 +411,49 @@ export default function HomePage() {
           <div className="word-preview">{dailyWords.length ? dailyWords.slice(0,5).map(w=><button key={w.id} className="preview-row" onClick={()=>{setSelected(w);changeTab("daily");startDailyStudy();}}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="preview-term"><b>{w.term}</b><small>{w.definition}</small></span><span className="preview-zh">{w.meaning || "查看英文释义"}</span><ChevronDown className="rotate-icon" size={17}/></button>) : <div className="empty-state">还没有生成今日词单。点击「开始今日学习」，选择20或30个新词。</div>}</div>
         </div>}
 
+        {tab==="daily" && <div className="page-content daily-page">
+          <div className="page-title-row"><div><div className="eyebrow">TODAY'S WORD SET · DAILY STUDY</div><h1>今日学习</h1><p>先生成今日词单，再逐个学习每一个医学术语。</p></div><div className="count-chip">{dailyWords.length ? dailyWords.length + " TERMS" : "NEW SET"}</div></div>
+
+          {((!progress.dailyStudyStarted && !progress.dailyStudyCompleted) || dailyShowList) && <div className="daily-selection-card">
+            <div className="daily-selection-heading"><div><span className="daily-kicker">STEP 1 · BUILD YOUR WORD SET</span><h2>选择今天学习多少个新单词</h2><p>系统会从尚未掌握的医学词汇中抽取，并单独保存为今日词单。</p></div><div className="daily-selection-icon"><BookOpen size={24}/></div></div>
+            <div className="daily-size-options">
+              <button className={progress.dailySize===20?"daily-size-active":""} onClick={()=>update({...progress,dailySize:20})}><b>20</b><span>个单词 · 标准学习量</span></button>
+              <button className={progress.dailySize===30?"daily-size-active":""} onClick={()=>update({...progress,dailySize:30})}><b>30</b><span>个单词 · 加强学习量</span></button>
+            </div>
+            <div className="daily-set-toolbar">
+              <div><b>今日专属词单</b><span>{dailyWords.length ? "当前已抽取 " + dailyWords.length + " 个单词" : "还没有抽取今日单词"}</span></div>
+              <button className="secondary-button" onClick={()=>{if(dailyWords.length && !window.confirm("重新抽取会替换当前今日词单及本组学习进度，确定继续吗？"))return;generateDailySet(progress.dailySize);}}><RotateCcw size={15}/>{dailyWords.length ? "重新抽取" : "抽取单词"}</button>
+            </div>
+            {dailyWords.length>0 && <>
+              {dailyWords.length!==progress.dailySize && <div className="daily-set-note">当前词单为 {dailyWords.length} 个。你选择了 {progress.dailySize} 个，请重新抽取以应用新的数量。</div>}
+              <div className="daily-word-list">{dailyWords.map((word,index)=><div className="daily-word-row" key={word.id}><span className="daily-word-number">{String(index+1).padStart(2,"0")}</span><div className="daily-word-copy"><b>{word.term}</b><span>{word.meaning || word.definition}</span></div><span className={progress.dailyCompletedIds.includes(word.id)?"daily-word-state done":"daily-word-state"}>{progress.dailyCompletedIds.includes(word.id)?"已学":"新词"}</span></div>)}</div>
+              <div className="daily-list-footer"><span>{progress.dailyCompletedIds.length} / {dailyWords.length} 已完成</span><button className="primary-button" onClick={startDailyStudy} disabled={dailyWords.length!==progress.dailySize}><Play size={16} fill="currentColor"/>{progress.dailyStudyStarted ? "继续学习" : progress.dailyStudyCompleted ? "重新学习本组" : "开始逐词学习"} <ArrowRight size={16}/></button></div>
+            </>}
+            {dailyWords.length===0 && <div className="daily-empty"><BookOpen size={25}/><b>今日词单尚未建立</b><span>选择20或30个单词，然后点击「抽取单词」。</span></div>}
+            {progress.dailyStudyStarted && <button className="daily-back-link" onClick={()=>setDailyShowList(false)}>返回当前学习页面 <ArrowRight size={14}/></button>}
+          </div>}
+
+          {progress.dailyStudyStarted && !dailyShowList && !progress.dailyStudyCompleted && dailyCurrentWord && <div className="daily-lesson-wrap">
+            <div className="daily-lesson-top"><div><span className="daily-kicker">STEP 2 · ONE WORD AT A TIME</span><h2>专注学习当前单词</h2></div><button className="secondary-button" onClick={()=>setDailyShowList(true)}><ListChecks size={15}/> 今日词单</button></div>
+            <div className="daily-lesson-progress"><div className="daily-progress-label"><span>今日学习进度</span><b>{progress.dailyStudyIndex+1} / {dailyWords.length}</b></div><div className="daily-progress-track"><span style={{width:String(((progress.dailyStudyIndex+1)/dailyWords.length)*100)+"%"}}/></div></div>
+            <article className="daily-word-card">
+              <div className="daily-word-meta"><span>{dailyCurrentWord.category}</span><span>WORD {String(progress.dailyStudyIndex+1).padStart(2,"0")}</span></div>
+              <div className="daily-term">{dailyCurrentWord.term}</div>
+              <div className="daily-meaning">{dailyCurrentWord.meaning || "中文释义待补充"}</div>
+              {dailyCurrentWord.meaningSource==="machine-translation" && <div className="translation-source">自动翻译参考译名 · 建议结合英文定义核对</div>}
+              {dailyCurrentWord.pronunciation && <div className="pronunciation-guide">教材注音：{dailyCurrentWord.pronunciation}</div>}
+              <div className="daily-audio-actions"><button className="speaker-button" onClick={()=>playWord(dailyCurrentWord,1)}><Volume2 size={17}/> 美式发音</button><button className="speaker-button" onClick={()=>playWord(dailyCurrentWord,0.75)}>慢速播放</button></div>
+              <div className="daily-detail-section"><span>ENGLISH DEFINITION · 英文定义</span><p>{dailyCurrentWord.definition}</p>{dailyCurrentWord.definitionZh && <div className="daily-definition-zh"><b>中文解释</b><p>{dailyCurrentWord.definitionZh}</p></div>}</div>
+              <div className="daily-detail-section"><span>WORD PARTS · 词根拆解</span><div className="parts-row">{dailyCurrentWord.parts.map((part,index)=><div className="part-chip" key={index}><b>{part.part}</b><small>{part.meaning}</small></div>)}</div></div>
+              {dailyCurrentWord.example && <div className="daily-detail-section"><span>CLINICAL EXAMPLE · 医学例句</span><p className="example-en">{dailyCurrentWord.example}</p>{dailyCurrentWord.exampleZh && <p className="example-zh">{dailyCurrentWord.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(dailyCurrentWord,1)}><Volume2 size={14}/> 播放例句</button></div></div>}
+              <div className="daily-word-actions"><button className="secondary-button" onClick={()=>markReview(dailyCurrentWord)}><RotateCcw size={15}/> 加入复习</button><button className="secondary-button" onClick={()=>markKnown(dailyCurrentWord)}><Check size={15}/> 标记已掌握</button></div>
+            </article>
+            <div className="daily-word-navigation"><button className="secondary-button" onClick={previousDailyWord} disabled={progress.dailyStudyIndex===0}><ChevronLeft size={17}/> 上一个</button><span>{progress.dailyStudyIndex+1} / {dailyWords.length}</span><button className="primary-button" onClick={nextDailyWord}>{progress.dailyStudyIndex===dailyWords.length-1?"完成今日新词":"下一个"} <ChevronRight size={17}/></button></div>
+          </div>}
+
+          {progress.dailyStudyCompleted && !dailyShowList && <div className="daily-complete-card"><div className="daily-complete-icon"><Check size={30}/></div><span className="daily-kicker">STEP 3 · NEW WORDS COMPLETED</span><h2>今日新词学习完成！</h2><p>你已经逐个学习了今日词单中的 {progress.dailyCompletedIds.length} / {dailyWords.length} 个单词。接下来进入复习，巩固记忆。</p><div className="daily-complete-stats"><b>{dailyWords.length}</b><span>今日新词</span><b>{dailyPercent}%</b><span>学习进度</span></div><button className="primary-button" onClick={startReview}><Repeat2 size={17}/> 进入今日复习 <ArrowRight size={17}/></button><button className="daily-back-link" onClick={()=>setDailyShowList(true)}>查看今日词单</button></div>}
+        </div>}
+
         {tab==="words" && <div className="page-content">
           <div className="page-title-row"><div><div className="eyebrow">MEDICAL TERMINOLOGY</div><h1>医学词汇库</h1><p>Search, study and master medical terms.</p></div><div className="count-chip">{words.length} TERMS</div></div>
           <div className="vocab-layout"><div className="vocab-list-panel"><div className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索英文、中文、词根…" /><span>{filteredWords.length}</span></div><div className="category-scroll">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?"filter-active":""}>{c==="All"?"全部":c}</button>)}</div><div className="vocab-list">{filteredWords.map(w=><button key={w.id} className={`vocab-row ${selected.id===w.id?"selected":""}`} onClick={()=>setSelected(w)}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="vocab-row-text"><b>{w.term}</b><small>{w.meaning || w.definition}</small></span><span className="row-status">{progress.knownIds.includes(w.id)?<Check size={16}/>:<span/>}</span></button>)}{filteredWords.length===0&&<div className="empty-state">没有找到匹配词汇。<br/>Try another search.</div>}</div></div>
