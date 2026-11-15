@@ -19,15 +19,20 @@ npm run dev
 ```
 Open http://localhost:3000.
 
-## Build Android APK
-The repository's GitHub Actions workflow builds a debug APK automatically after changes are pushed to `main`.
+## Build Android APK with Codemagic
+The repository includes `codemagic.yaml` for building an installable Android debug APK on Codemagic.
 
-1. Open the repository's **Actions** tab.
-2. Select **Build CPC Academy Android APK**.
-3. Open the latest successful run.
-4. Download the `CPC-Academy-Android-APK` artifact and extract the APK.
+1. Create an individual account at https://codemagic.io/.
+2. Connect your GitHub account and grant read access to the private `infcreative-Ethan/cpc-academy` repository.
+3. Add the CPC Academy application and select the `main` branch.
+4. Let Codemagic detect the `codemagic.yaml` configuration at the repository root.
+5. Select the **CPC Academy Android APK** workflow and start a manual build.
+6. When the build succeeds, download `app-debug.apk` from the Artifacts section.
 
-For local Android development, install Node.js 22+, Android Studio 2025.2.1+, and Android SDK API 36, then run:
+The workflow uses the `mac_mini_m2` build machine. Codemagic's individual Free plan currently includes 500 macOS M2 build minutes per month. Do not enable pay-as-you-go billing unless you explicitly want paid builds.
+
+## Local Android build
+Install Node.js 22+, Java 21, Android Studio, and Android SDK API 36, then run:
 ```bash
 npm install
 npm run build
@@ -42,4 +47,4 @@ cd android
 - Pronunciation uses the device's available en-US speech synthesis voice; Android may need an English voice downloaded in system Text-to-Speech settings.
 - The app shell is packaged locally; the initial vocabulary and learning features do not require a server.
 - The initial vocabulary set is a starter dataset and should be reviewed against the learner's selected course materials before being treated as an authoritative glossary.
-- The generated debug APK is intended for direct testing and sideload installation, not Play Store distribution.
+- The debug APK is signed with Android's debug key and is intended for direct testing/sideload installation, not Play Store distribution.
