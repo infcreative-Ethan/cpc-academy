@@ -22,6 +22,7 @@ from pathlib import Path
 
 VOCAB_PATH = Path("lib/book-vocabulary.json")
 CACHE_PATH = Path(".cache/chinese-translations.json")
+DICTIONARY_PATH = Path("public/english-dictionary.json")
 SOURCES = {
     "curated": "https://raw.githubusercontent.com/yimmy23/medical-en-zh-glossary/main/references/glossary.tsv",
     "medical_cc0": "https://raw.githubusercontent.com/yimmy23/medical-en-zh-glossary/main/references/external-medical-translator.tsv",
@@ -131,6 +132,7 @@ def main() -> None:
     print(f"Enriching {len(terms)} medical terms…", flush=True)
 
     dictionaries: list[dict[str, tuple[str, str]]] = []
+    ecdict: dict[str, tuple[str, str]] = {}
     for label, url in (("curated", SOURCES["curated"]), ("medical_cc0", SOURCES["medical_cc0"]), ("aix_medical", SOURCES["aix_medical"])):
         try:
             dictionaries.append(load_tsv(url, label) if label != "aix_medical" else load_aix(url))
@@ -139,8 +141,9 @@ def main() -> None:
             print(f"WARNING: could not load {label}: {error}", flush=True)
 
     try:
-        dictionaries.append(load_ecdict(SOURCES["ecdict"]))
-        print(f"Loaded ECDICT: {len(dictionaries[-1])} entries", flush=True)
+        ecdict = load_ecdict(SOURCES["ecdict"])
+        dictionaries.append(ecdict)
+        print(f"Loaded ECDICT: {len(ecdict)} entries", flush=True)
     except Exception as error:
         print(f"WARNING: could not load ECDICT: {error}", flush=True)
 
@@ -155,13 +158,21 @@ def main() -> None:
                 item["meaning"], item["meaningSource"] = match
                 break
 
+    parts = data.get("parts", [])
+    for part in parts:
+        if has_chinese(part.get("meaningZh", "")):
+            continue
+        match = ecdict.get(normalize(part.get("meaning", ""))) or ecdict.get(normalize(part.get("part", "")))
+        if match:
+            part["meaningZh"] = match[0]
+
     CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
     try:
         cache = json.loads(CACHE_PATH.read_text(encoding="utf-8"))
     except Exception:
         cache = {}
 
-    tasks: list[tuple[str, int, str]] = []
+    tasks: list[tuple[str, int, str, str]] = []
     if not args.skip_google:
         for index, item in enumerate(terms):
             term = item.get("term", "").strip()
@@ -169,28 +180,37 @@ def main() -> None:
             if term and not (item.get("meaning") and has_chinese(item["meaning"])):
                 cache_key = "term:" + term
                 if cache_key not in cache:
-                    tasks.append((cache_key, index, term))
+                    tasks.append((cache_key, index, term, "term"))
             if definition and not (item.get("definitionZh") and has_chinese(item["definitionZh"])):
                 cache_key = "definition:" + term
                 if cache_key not in cache:
-                    tasks.append((cache_key, index, definition))
+                    tasks.append((cache_key, index, definition, "definition"))
+
+        for index, part in enumerate(parts):
+            meaning = part.get("meaning", "").strip()
+            if meaning and not has_chinese(part.get("meaningZh", "")):
+                cache_key = "part:" + part.get("part", "")
+                if cache_key not in cache:
+                    tasks.append((cache_key, index, meaning, "part"))
 
         print(f"Machine-translation fallback: {len(tasks)} requests", flush=True)
         completed = 0
         failures = 0
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
-            future_map = {executor.submit(google_translate, text): (key, index) for key, index, text in tasks}
+            future_map = {executor.submit(google_translate, text): (key, index, kind) for key, index, text, kind in tasks}
             for future in concurrent.futures.as_completed(future_map):
-                key, index = future_map[future]
+                key, index, kind = future_map[future]
                 try:
                     translated = future.result()
                     if has_chinese(translated):
                         cache[key] = translated
-                        if key.startswith("term:") and not terms[index].get("meaning"):
+                        if kind == "term" and not terms[index].get("meaning"):
                             terms[index]["meaning"] = translated
                             terms[index]["meaningSource"] = "machine-translation"
-                        elif key.startswith("definition:"):
+                        elif kind == "definition":
                             terms[index]["definitionZh"] = translated
+                        elif kind == "part":
+                            parts[index]["meaningZh"] = translated
                 except Exception as error:
                     failures += 1
                     if failures <= 10:
@@ -215,9 +235,66 @@ def main() -> None:
         if not item.get("definitionZh") and cache.get("definition:" + term) and has_chinese(cache["definition:" + term]):
             item["definitionZh"] = cache["definition:" + term]
 
+    for part in parts:
+        if not has_chinese(part.get("meaningZh", "")) and cache.get("part:" + part.get("part", "")):
+            part["meaningZh"] = cache["part:" + part.get("part", "")]
+    missing_parts = [part.get("part", "") for part in parts if not has_chinese(part.get("meaningZh", ""))]
+
+    # Build a compact offline English-Chinese lookup for every English word
+    # appearing in the built-in medical terms, definitions, and word-part descriptions.
+    token_pattern = re.compile(r"[A-Za-z]+(?:[-'][A-Za-z]+)*")
+    dictionary_texts = []
+    for item in terms:
+        dictionary_texts.extend([item.get("term", ""), item.get("definition", "")])
+    for part in parts:
+        dictionary_texts.extend([part.get("part", ""), part.get("meaning", "")])
+    tokens = sorted({normalize(token) for value in dictionary_texts for token in token_pattern.findall(value) if normalize(token)})
+    word_dictionary: dict[str, str] = {}
+    missing_tokens: list[str] = []
+    for token in tokens:
+        match = ecdict.get(token)
+        cached = cache.get("word:" + token, "")
+        translation = match[0] if match else cached
+        if has_chinese(translation):
+            word_dictionary[token] = translation
+        else:
+            missing_tokens.append(token)
+
+    if not args.skip_google and missing_tokens:
+        print(f"Translating {len(missing_tokens)} remaining dictionary words…", flush=True)
+        failures = 0
+        completed = 0
+        with concurrent.futures.ThreadPoolExecutor(max_workers=8) as executor:
+            future_map = {executor.submit(google_translate, token): token for token in missing_tokens}
+            for future in concurrent.futures.as_completed(future_map):
+                token = future_map[future]
+                try:
+                    translated = future.result()
+                    if has_chinese(translated):
+                        cache["word:" + token] = translated
+                        word_dictionary[token] = translated
+                except Exception as error:
+                    failures += 1
+                    if failures <= 10:
+                        print(f"WARNING: dictionary word {token} not translated: {error}", flush=True)
+                completed += 1
+                if completed % 100 == 0 or completed == len(missing_tokens):
+                    CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
+                    print(f"Dictionary translated {completed}/{len(missing_tokens)}; failures={failures}", flush=True)
+                if failures >= 16:
+                    print("Stopping dictionary translation after repeated service errors; ECDICT entries remain available.", flush=True)
+                    for pending in future_map:
+                        if not pending.done():
+                            pending.cancel()
+                    break
+
+    DICTIONARY_PATH.parent.mkdir(parents=True, exist_ok=True)
+    DICTIONARY_PATH.write_text(json.dumps(word_dictionary, ensure_ascii=False, separators=(",", ":")) + "\n", encoding="utf-8")
+
     missing_meanings = [item["term"] for item in terms if not has_chinese(item.get("meaning", ""))]
     missing_definitions = [item["term"] for item in terms if not has_chinese(item.get("definitionZh", ""))]
     data["terms"] = terms
+    data["parts"] = parts
     VOCAB_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "terms": len(terms),
@@ -225,6 +302,10 @@ def main() -> None:
         "missing_meaning": len(missing_meanings),
         "with_chinese_definition": len(terms) - len(missing_definitions),
         "missing_definition": len(missing_definitions),
+        "parts": len(parts),
+        "parts_with_chinese": len(parts) - len(missing_parts),
+        "missing_parts": missing_parts[:30],
+        "offline_dictionary_words": len(word_dictionary),
         "missing_meaning_examples": missing_meanings[:30],
     }, ensure_ascii=False, indent=2), flush=True)
 
