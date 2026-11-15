@@ -13,7 +13,7 @@ import { emptyProgress, getTodayKey, loadProgress, saveProgress, StudyProgress }
 type Tab = "home" | "words" | "review" | "listen" | "dictation" | "roots" | "progress";
 type DictationMode = "word" | "meaning" | "definition" | "root" | "clinical";
 const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties"];
-const APP_VERSION = "0.2.2";
+const APP_VERSION = "0.2.3";
 
 type AudioStatus = { message: string; kind: "info" | "success" | "error" };
 
@@ -71,6 +71,18 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
+    const player = new Audio();
+    player.preload = "auto";
+    audioRef.current = player;
+    return () => {
+      player.pause();
+      player.removeAttribute("src");
+      player.load();
+      audioRef.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
     let saved = loadProgress();
     const today = getTodayKey();
     if (saved.dailyDate !== today) {
@@ -101,7 +113,7 @@ export default function HomePage() {
   const currentReviewWord = reviewPool[reviewIndex];
 
   const filteredWords = useMemo(() => words.filter(w => {
-    const matchesQuery = !query || [w.term, w.meaning, w.definition, ...w.parts.map(p=>p.part)].join(" ").toLowerCase().includes(query.toLowerCase());
+    const matchesQuery = !query || [w.term, w.meaning, w.definition, w.definitionZh ?? "", ...w.parts.map(p=>p.part)].join(" ").toLowerCase().includes(query.toLowerCase());
     return matchesQuery && (category === "All" || w.category === category);
   }), [query, category]);
 
@@ -224,17 +236,17 @@ export default function HomePage() {
       setAudioStatus("找不到对应的 MP3 音频文件。", "error");
       return;
     }
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-    }
-    const audio = new Audio(src);
-    audio.preload = "auto";
-    audio.playbackRate = rate;
+    const audio = audioRef.current ?? new Audio();
     audioRef.current = audio;
-    audio.onplay = () => setAudioStatus("正在播放离线美式英语 MP3 音频。", "success");
+    audio.pause();
+    try { audio.currentTime = 0; } catch {}
+    audio.onplaying = () => setAudioStatus("正在播放离线美式英语 MP3 音频。", "success");
     audio.onended = () => setAudioStatus("播放完成。", "info");
     audio.onerror = () => setAudioStatus("MP3 音频读取失败。请确认已安装最新 CPC Academy 版本。", "error");
+    audio.preload = "auto";
+    audio.src = src;
+    audio.playbackRate = rate;
+    audio.load();
     audio.play().catch(error => {
       const message = error instanceof Error ? error.message : "媒体播放失败";
       setAudioStatus("MP3 播放失败：" + message, "error");
@@ -296,7 +308,7 @@ export default function HomePage() {
         <nav className="side-nav">
           {navItems.map(item=>{ const Icon=item.icon; return <button key={item.id} className={`nav-item ${tab===item.id?"active":""}`} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}<small>{item.en}</small></span>{tab===item.id&&<span className="nav-dot"/>}</button>; })}
         </nav>
-        <div className="sidebar-bottom"><div className="daily-mini"><div className="daily-mini-icon"><Target size={18}/></div><div><b>每日目标</b><span>20 new words</span></div><strong>{studiedToday}/20</strong></div><div className="sidebar-foot">CPC Academy <span>V0.2.2 · Offline MP3</span></div></div>
+        <div className="sidebar-bottom"><div className="daily-mini"><div className="daily-mini-icon"><Target size={18}/></div><div><b>每日目标</b><span>20 new words</span></div><strong>{studiedToday}/20</strong></div><div className="sidebar-foot">CPC Academy <span>V0.2.3 · Bilingual audio</span></div></div>
       </aside>
 
       {mobileMenu && <button aria-label="关闭菜单" className="scrim" onClick={()=>setMobileMenu(false)}/>}
@@ -323,7 +335,7 @@ export default function HomePage() {
         {tab==="words" && <div className="page-content">
           <div className="page-title-row"><div><div className="eyebrow">MEDICAL TERMINOLOGY</div><h1>医学词汇库</h1><p>Search, study and master medical terms.</p></div><div className="count-chip">{words.length} TERMS</div></div>
           <div className="vocab-layout"><div className="vocab-list-panel"><div className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索英文、中文、词根…" /><span>{filteredWords.length}</span></div><div className="category-scroll">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?"filter-active":""}>{c==="All"?"全部":c}</button>)}</div><div className="vocab-list">{filteredWords.map(w=><button key={w.id} className={`vocab-row ${selected.id===w.id?"selected":""}`} onClick={()=>setSelected(w)}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="vocab-row-text"><b>{w.term}</b><small>{w.meaning || w.definition}</small></span><span className="row-status">{progress.knownIds.includes(w.id)?<Check size={16}/>:<span/>}</span></button>)}{filteredWords.length===0&&<div className="empty-state">没有找到匹配词汇。<br/>Try another search.</div>}</div></div>
-          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>playWord(selected,1)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>playWord(selected,0.75)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><span>ENGLISH DEFINITION</span><p>{selected.definition}</p></div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{p.meaning}</small></div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{selected.example}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(selected,1)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>playExample(selected,0.75)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">独立预生成的美式英语 MP3 音频 · 离线可播放 · 慢速播放 0.75×。不使用手机 TTS 或语音包。</p><div className="audio-help-actions"><button className="inline-audio" onClick={()=>playWord(selected,1)}><Volume2 size={15}/> 试听当前单词</button></div></div></div>
+          <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>playWord(selected,1)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>playWord(selected,0.75)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.meaningSource === "machine-translation" && <div className="translation-source">自动翻译参考译名 · 建议结合英文定义核对</div>}{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><span>ENGLISH DEFINITION</span><p>{selected.definition}</p>{selected.definitionZh && <div className="detail-definition-zh"><span>中文解释</span><p>{selected.definitionZh}</p></div>}</div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{p.meaning}</small></div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{selected.example}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(selected,1)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>playExample(selected,0.75)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">独立预生成的美式英语 MP3 音频 · 离线可播放 · 慢速播放 0.75×。不使用手机 TTS 或语音包。</p><div className="audio-help-actions"><button className="inline-audio" onClick={()=>playWord(selected,1)}><Volume2 size={15}/> 试听当前单词</button></div></div></div>
         </div>}
 
         {tab==="review" && <div className="page-content narrow-content">
