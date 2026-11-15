@@ -33,7 +33,7 @@ def speech_text(value: str) -> str:
 
 def synthesize_mp3(voice: PiperVoice, text: str, destination: Path, temp_dir: Path) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
-    wav_path = temp_dir / f"{destination.stem}.wav"
+    wav_path = temp_dir / f"{destination.parent.name}-{destination.stem}.wav"
     with wave.open(str(wav_path), "wb") as wav_file:
         voice.synthesize_wav(text, wav_file)
     subprocess.run(
