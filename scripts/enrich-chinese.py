@@ -88,6 +88,22 @@ def load_aix(url: str) -> dict[str, tuple[str, str]]:
 
 
 def load_ecdict(url: str) -> dict[str, tuple[str, str]]:
+    # The preceding build step creates a broad, filtered offline ECDICT file.
+    # Reuse it here instead of downloading the full CSV a second time.
+    if DICTIONARY_PATH.exists():
+        try:
+            saved = json.loads(DICTIONARY_PATH.read_text(encoding="utf-8"))
+            result = {
+                normalize(source): (target, "english-chinese-dictionary")
+                for source, target in saved.items()
+                if source and target and has_chinese(target) and normalize(source)
+            }
+            if result:
+                print(f"Loaded prebuilt offline ECDICT dictionary: {len(result)} entries", flush=True)
+                return result
+        except Exception as error:
+            print(f"WARNING: could not read prebuilt offline dictionary: {error}", flush=True)
+
     print("Downloading ECDICT English-Chinese dictionary…", flush=True)
     text = fetch_text(url, timeout=180)
     result: dict[str, tuple[str, str]] = {}
@@ -249,7 +265,19 @@ def main() -> None:
     for part in parts:
         dictionary_texts.extend([part.get("part", ""), part.get("meaning", "")])
     tokens = sorted({normalize(token) for value in dictionary_texts for token in token_pattern.findall(value) if normalize(token)})
+    # Preserve the broad offline dictionary built earlier in the workflow.
+    # The book-token pass below adds/overrides terminology-specific translations;
+    # it must not shrink the app's general English lookup back to book-only words.
     word_dictionary: dict[str, str] = {}
+    if DICTIONARY_PATH.exists():
+        try:
+            saved_dictionary = json.loads(DICTIONARY_PATH.read_text(encoding="utf-8"))
+            for source, target in saved_dictionary.items():
+                key = normalize(source)
+                if key and has_chinese(target):
+                    word_dictionary.setdefault(key, target)
+        except Exception as error:
+            print(f"WARNING: could not preserve existing offline dictionary: {error}", flush=True)
     missing_tokens: list[str] = []
     for token in tokens:
         match = ecdict.get(token)
