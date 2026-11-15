@@ -62,6 +62,8 @@ jobs:
 
       - name: Generate offline US English MP3 library
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
           python -m pip install --disable-pip-version-check piper-tts==1.4.2
           python -m piper.download_voices en_US-kristin-medium --data-dir .piper
           ffmpeg -version
