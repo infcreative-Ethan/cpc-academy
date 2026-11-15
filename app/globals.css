@@ -21,4 +21,4 @@
 .round-results span{font-size:10px;color:#888da0}
 .round-results b{font-size:17px;color:#38334f}
 .round-results small{font-size:10px;color:#6d61cf}
-@media(max-width:760px){.update-button{padding:7px 8px;font-size:9px}.update-notice{padding:9px 14px;font-size:10px}.audio-controls{gap:5px}.audio-controls .speaker-button{font-size:8px;padding:7px}.round-selector{gap:6px}.round-selector button{padding:9px 12px}}
+@media(max-width:760px){.top-actions .language-pill{display:none}.update-button{padding:7px 8px;font-size:9px}.update-notice{padding:9px 14px;font-size:10px}.audio-controls{gap:5px}.audio-controls .speaker-button{font-size:8px;padding:7px}.round-selector{gap:6px}.round-selector button{padding:9px 12px}}
