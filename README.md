@@ -3,11 +3,15 @@
 Mobile-first bilingual self-study app for foundational US medical terminology.
 
 ## Features
+- 2,306 textbook Mini-Dictionary terms with the book’s pronunciation respellings and English definitions
+- 878 glossary word parts (combining forms, prefixes, and suffixes)
 - English/Chinese medical vocabulary cards, search, and category filters
-- US English pronunciation using browser speech synthesis (en-US voices)
+- US English pronunciation using the device’s en-US speech voice, with normal and slow playback
 - Listening recognition and typed dictation
 - Word-part/root study and Chinese meaning recall
 - Daily target of 20 new words
+- User-selected 1, 2, 3, 5, or 10 review rounds, with per-round accuracy history
+- In-app “Check for updates” shortcut to the latest successful APK build on GitHub Actions
 - Local progress, review queue, and weak-word tracking
 - Responsive mobile navigation
 - Android APK packaging through Capacitor
