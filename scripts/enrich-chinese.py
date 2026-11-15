@@ -39,12 +39,12 @@ def fetch_text(url: str, timeout: int = 90) -> str:
 def normalize(value: str) -> str:
     value = unicodedata.normalize("NFKC", value).lower()
     value = value.replace("’", "'").replace("‘", "'").replace("–", "-").replace("—", "-")
-    value = re.sub(r"[^\\w]+", " ", value, flags=re.UNICODE)
+    value = re.sub(r"[^\w]+", " ", value, flags=re.UNICODE)
     return " ".join(value.split())
 
 
 def has_chinese(value: str) -> bool:
-    return bool(re.search(r"[\\u3400-\\u9fff]", value or ""))
+    return bool(re.search(r"[\u3400-\u9fff]", value or ""))
 
 
 def clean_translation(value: str) -> str:
@@ -53,10 +53,10 @@ def clean_translation(value: str) -> str:
         line = raw.strip()
         if not line:
             continue
-        line = re.sub(r"^\\s*(?:\\[[^]]+\\]\\s*)+", "", line)
-        line = re.sub(r"^(?:(?:n|v|vt|vi|adj|adv|a|s|prep|pron|conj|int)\\.\\s*)+", "", line, flags=re.I)
-        line = re.sub(r"\\s*\\[[^]]+\\]\\s*", " ", line)
-        line = re.sub(r"\\s+", " ", line).strip(" ;；,，")
+        line = re.sub(r"^\s*(?:\[[^]]+\]\s*)+", "", line)
+        line = re.sub(r"^(?:(?:n|v|vt|vi|adj|adv|a|s|prep|pron|conj|int)\.\s*)+", "", line, flags=re.I)
+        line = re.sub(r"\s*\[[^]]+\]\s*", " ", line)
+        line = re.sub(r"\s+", " ", line).strip(" ;；,，")
         if has_chinese(line):
             candidates.append(line)
     return "；".join(candidates[:2])[:120]
@@ -64,7 +64,7 @@ def clean_translation(value: str) -> str:
 
 def load_tsv(url: str, source_name: str) -> dict[str, tuple[str, str]]:
     text = fetch_text(url)
-    reader = csv.DictReader(io.StringIO(text), delimiter="\\t")
+    reader = csv.DictReader(io.StringIO(text), delimiter="\t")
     result: dict[str, tuple[str, str]] = {}
     for row in reader:
         source = (row.get("source") or "").strip()
@@ -212,7 +212,7 @@ def main() -> None:
     missing_meanings = [item["term"] for item in terms if not has_chinese(item.get("meaning", ""))]
     missing_definitions = [item["term"] for item in terms if not has_chinese(item.get("definitionZh", ""))]
     data["terms"] = terms
-    VOCAB_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    VOCAB_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "terms": len(terms),
         "with_chinese_meaning": len(terms) - len(missing_meanings),
