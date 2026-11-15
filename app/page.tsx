@@ -49,6 +49,7 @@ export default function HomePage() {
   const [listeningIndex, setListeningIndex] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [reviewRounds, setReviewRounds] = useState(3);
+  const [reviewSessionIds, setReviewSessionIds] = useState<string[]>([]);
   const [reviewActive, setReviewActive] = useState(false);
   const [reviewFinished, setReviewFinished] = useState(false);
   const [reviewRound, setReviewRound] = useState(1);
@@ -85,10 +86,10 @@ export default function HomePage() {
   }, [progress.dailyIds]);
 
   const reviewPool = useMemo(() => {
-    const ids = [...new Set([...progress.dailyIds, ...progress.reviewIds])];
+    const ids = reviewSessionIds.length ? reviewSessionIds : [...new Set([...progress.dailyIds, ...progress.reviewIds])];
     const pool = ids.map(id => words.find(w => w.id === id)).filter((w): w is MedicalWord => Boolean(w));
     return pool.length ? pool : dailyWords;
-  }, [progress.dailyIds, progress.reviewIds, dailyWords]);
+  }, [reviewSessionIds, progress.dailyIds, progress.reviewIds, dailyWords]);
   const currentReviewWord = reviewPool[reviewIndex];
 
   const filteredWords = useMemo(() => words.filter(w => {
@@ -121,10 +122,10 @@ export default function HomePage() {
 
   const promptFor = (word: MedicalWord, mode: DictationMode) => {
     if (mode === "word") return { label: "Listen and spell", prompt: "点击播放，听完后写出英文单词", expected: word.term };
-    if (mode === "meaning") return { label: "Chinese → English", prompt: word.meaning, expected: word.term };
+    if (mode === "meaning") return { label: "Chinese → English", prompt: word.meaning || word.definition, expected: word.term };
     if (mode === "definition") return { label: "Definition → Term", prompt: word.definition, expected: word.term };
     if (mode === "root") return { label: "Word parts → Term", prompt: word.parts.map(p=>p.part).join(" + "), expected: word.term };
-    return { label: "Clinical sentence", prompt: word.exampleZh, expected: word.term };
+    return { label: "Clinical sentence", prompt: word.exampleZh || word.definition, expected: word.term };
   };
 
   const submitAnswer = () => {
@@ -152,6 +153,7 @@ export default function HomePage() {
   };
 
   const startReview = () => {
+    setReviewSessionIds(reviewPool.map(word => word.id));
     setReviewActive(true);
     setReviewFinished(false);
     setReviewRound(1);
