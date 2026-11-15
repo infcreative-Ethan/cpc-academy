@@ -19,17 +19,17 @@ npm run dev
 ```
 Open http://localhost:3000.
 
-## Build Android APK with Codemagic
-The repository includes `codemagic.yaml` for building an installable Android debug APK on Codemagic.
+## Build an Android APK with GitHub Actions
+The public repository includes a GitHub Actions workflow at `.github/workflows/android-apk.yml`.
 
-1. Create an individual account at https://codemagic.io/.
-2. Connect your GitHub account and grant read access to the private `infcreative-Ethan/cpc-academy` repository.
-3. Add the CPC Academy application and select the `main` branch.
-4. Let Codemagic detect the `codemagic.yaml` configuration at the repository root.
-5. Select the **CPC Academy Android APK** workflow and start a manual build.
-6. When the build succeeds, download `app-debug.apk` from the Artifacts section.
+1. Open the repository's **Actions** tab.
+2. Select **Build CPC Academy Android APK**.
+3. If you want to build without making a code change, select **Run workflow** and choose the `main` branch.
+4. Open the completed workflow run.
+5. In **Artifacts**, download `CPC-Academy-Android-APK`.
+6. Extract the downloaded ZIP and install `app-debug.apk` on your Android phone.
 
-The workflow uses the `mac_mini_m2` build machine. Codemagic's individual Free plan currently includes 500 macOS M2 build minutes per month. Do not enable pay-as-you-go billing unless you explicitly want paid builds.
+A push to the `main` branch also starts a build automatically. The workflow uses the standard `ubuntu-24.04` GitHub-hosted runner. Standard GitHub-hosted runners are free for public repositories. The APK artifact is retained for 7 days; download it before it expires.
 
 ## Local Android build
 Install Node.js 22+, Java 21, Android Studio, and Android SDK API 36, then run:
