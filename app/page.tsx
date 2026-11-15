@@ -352,6 +352,7 @@ export default function HomePage() {
   };
 
   const startReview = () => {
+    if (!reviewPool.length) return;
     setReviewSessionIds(reviewPool.map(word => word.id));
     setReviewActive(true);
     setReviewFinished(false);
