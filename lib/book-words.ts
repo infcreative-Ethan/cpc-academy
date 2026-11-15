@@ -13,8 +13,8 @@ type BookPart = { part: string; meaning: string; meaningZh?: string };
 const starterByTerm = new Map(starterWords.map((word) => [word.term.toLowerCase(), word]));
 const glossaryParts = (data as { parts: BookPart[] }).parts;
 const allPartsByKey = new Map<string, WordPart>();
-const chineseText = (value: string) => (value.match(/[\u3400-\u9fff][\\u3400-\\u9fff、，；／/（）() ]*/g) ?? []).join("；").trim();
-const englishText = (value: string) => value.replace(/[\u3400-\u9fff][\\u3400-\\u9fff、，；／/（）() ]*/g, "").trim();
+const chineseText = (value: string) => (value.match(/[\u3400-\u9fff][\u3400-\u9fff、，；／/（）() ]*/g) ?? []).join("；").trim();
+const englishText = (value: string) => value.replace(/[\u3400-\u9fff][\u3400-\u9fff、，；／/（）() ]*/g, "").trim();
 for (const part of [...glossaryParts, ...starterParts]) {
   const key = part.part.toLowerCase();
   const previous = allPartsByKey.get(key);
