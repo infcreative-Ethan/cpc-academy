@@ -25,6 +25,16 @@ Mobile-first bilingual self-study app for US medical terminology and the CPC cod
 - Android APK packaging through Capacitor
 
 
+
+## Independent Medical Lessons (pilot)
+
+- New static-export-compatible `/cpc/learn/` course route with full 22-chapter navigation.
+- 17 independently authored learning sessions across Chapters 1–5 (initial subset only), 34 knowledge-check questions, mock clinical records, concept diagrams, offline pronunciation where vocabulary assets exist, and local mastery records.
+- Per-lesson mastery is recorded after a knowledge check; chapter outline tags alone no longer count as completed study.
+- Chapters and sections without authored content explicitly state that lesson content is not ready.
+- Medical lesson progress is stored separately under `cpc-academy-medical-lessons-v1`, preserving legacy study records.
+- Source relationship: textbook table-of-contents and topic organization; explanations and questions are original educational material, not transcriptions of textbook prose.
+
 ## CPC Learning Center V1.0 Beta
 
 The `/cpc/` learning center is integrated into the existing vocabulary app and includes:

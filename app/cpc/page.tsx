@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { appendices, bodySystems, chapters, codeSets, officialResources, practiceCases } from "@/lib/cpc-curriculum";
 import { wordParts, words } from "@/lib/book-words";
+import { medicalLessons, lessonsForChapter } from "@/lib/cpc-medical-lessons";
 
 type Panel = "overview" | "book" | "terms" | "anatomy" | "cases" | "coding";
 type SavedProgress = { completedChapters: number[]; completedCases: string[]; caseScores: Record<string, number> };
@@ -27,6 +28,7 @@ export default function CpcLearningCenter() {
   const [panel, setPanel] = useState<Panel>("overview");
   const [saved, setSaved] = useState<SavedProgress>(emptyProgress);
   const [ready, setReady] = useState(false);
+  const [passedMedicalLessons, setPassedMedicalLessons] = useState<string[]>([]);
   const [expandedChapter, setExpandedChapter] = useState<number | null>(1);
   const [termQuery, setTermQuery] = useState("");
   const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
@@ -43,6 +45,13 @@ export default function CpcLearningCenter() {
     } catch {
       setSaved(emptyProgress);
     }
+    try {
+      const raw = localStorage.getItem("cpc-academy-medical-lessons-v1");
+      if (raw) {
+        const progress = JSON.parse(raw) as { passed?: Record<string, {score: number}> };
+        setPassedMedicalLessons(Object.entries(progress.passed ?? {}).filter(([, value]) => value && value.score >= 80).map(([id]) => id));
+      }
+    } catch { /* preserve existing vocabulary and chapter data even if course progress is unavailable */ }
     setReady(true);
   }, []);
 
@@ -94,7 +103,7 @@ export default function CpcLearningCenter() {
     playCpcAudio("/audio/parts/" + filename);
   };
 
-  const completedCount = saved.completedChapters.length;
+  const completedCount = medicalLessons.filter(lesson => passedMedicalLessons.includes(lesson.id)).length;
   const caseCount = saved.completedCases.length;
 
   const toggleChapterComplete = (number: number) => {
@@ -140,7 +149,7 @@ export default function CpcLearningCenter() {
             <span className="cpc-eyebrow"><GraduationCap size={14} /> MEDICAL CODING PATHWAY</span>
             <h1>从看懂医学记录，<br /><em>到理解编码逻辑。</em></h1>
             <p>医学术语、人体解剖、临床记录与美国医疗编码基础，形成一条完整学习路径。</p>
-            <button className="cpc-primary" onClick={() => setPanel("cases")}>开始病历训练 <ArrowRight size={16} /></button>
+            <Link href="/cpc/learn/" className="cpc-primary">开始医学系统课程 <ArrowRight size={16} /></Link>
           </div>
           <div className="cpc-hero-graphic" aria-hidden="true">
             <div className="cpc-graphic-ring ring-a" />
@@ -168,7 +177,7 @@ export default function CpcLearningCenter() {
           <section className="cpc-panel">
             <div className="cpc-section-heading"><div><span className="cpc-eyebrow">YOUR LEARNING ROUTE</span><h2>四个阶段，建立编码能力</h2><p>先建立医学理解，再学习编码规则；不要跳过病历阅读。</p></div></div>
             <div className="cpc-route-grid">
-              <button className="cpc-route-card" onClick={() => setPanel("book")}><span className="route-no">01</span><BookOpen size={22} /><b>医学术语基础</b><p>原书 Chapters 1–4：词根、词缀、身体整体结构。</p><small>从词汇结构开始 <ArrowRight size={13} /></small></button>
+              <button className="cpc-route-card" onClick={() => setPanel("book")}><span className="route-no">01</span><BookOpen size={22} /><b>医学术语基础</b><p>原书 Chapters 1–4：词根、词缀、身体整体结构。</p><small>先查看学习顺序 <ArrowRight size={13} /></small></button>
               <button className="cpc-route-card" onClick={() => setPanel("anatomy")}><span className="route-no">02</span><Brain size={22} /><b>人体解剖与系统</b><p>原书 Chapters 5–18：器官、组织、疾病与检查。</p><small>按人体系统学习 <ArrowRight size={13} /></small></button>
               <button className="cpc-route-card" onClick={() => setPanel("cases")}><span className="route-no">03</span><FileSearch size={22} /><b>临床病历阅读</b><p>提取诊断、部位、侧别、实际操作和文档依据。</p><small>练习病例分析 <ArrowRight size={13} /></small></button>
               <button className="cpc-route-card" onClick={() => setPanel("coding")}><span className="route-no">04</span><ClipboardCheck size={22} /><b>编码体系与规则</b><p>理解 ICD-10-CM、CPT®、HCPCS Level II 的职责。</p><small>进入编码基础 <ArrowRight size={13} /></small></button>
@@ -176,8 +185,8 @@ export default function CpcLearningCenter() {
             <div className="cpc-two-col">
               <div className="cpc-card">
                 <div className="cpc-card-title"><div><Target size={18} /><b>学习进度</b></div><span>保存在本机</span></div>
-                <div className="cpc-progress-row"><span>教材章节</span><b>{completedCount} / 22</b></div>
-                <div className="cpc-progress-track"><i style={{ width: String(completedCount / 22 * 100) + "%" }} /></div>
+                <div className="cpc-progress-row"><span>首批医学课程</span><b>{completedCount} / {medicalLessons.length}</b></div>
+                <div className="cpc-progress-track"><i style={{ width: String(completedCount / medicalLessons.length * 100) + "%" }} /></div>
                 <div className="cpc-progress-row"><span>模拟病历</span><b>{caseCount} / 4</b></div>
                 <div className="cpc-progress-track"><i style={{ width: String(caseCount / 4 * 100) + "%" }} /></div>
                 <p className="cpc-muted-note">学习记录保存在当前设备。清除浏览器数据或卸载应用可能导致本地记录丢失。</p>
@@ -251,7 +260,7 @@ export default function CpcLearningCenter() {
 
         {panel === "book" && (
           <section className="cpc-panel">
-            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">THE LANGUAGE OF MEDICINE · 13TH EDITION</span><h2>按原书目录学习 22 章</h2><p>章节标题与主题根据你提供的第13版目录整理；这里提供学习导航，不复制教材正文。</p></div><span className="cpc-pill">{completedCount}/22 已完成</span></div>
+            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">THE LANGUAGE OF MEDICINE · 13TH EDITION</span><h2>按原书目录学习 22 章</h2><p>目前已制作17节独立课程（Chapter 1–5 的部分课时）；未制作的章节仅显示目录。课程知识检测通过后才记录进度。</p></div><span className="cpc-pill">{completedCount}/{medicalLessons.length} 已通过课时</span></div>
             <div className="cpc-phase-intro">
               <div><b>01 · Foundation</b><span>Chapters 1–4 · 医学词汇与人体整体结构</span></div>
               <div><b>02 · Body Systems</b><span>Chapters 5–18 · 人体器官系统</span></div>
@@ -260,12 +269,13 @@ export default function CpcLearningCenter() {
             <div className="cpc-chapter-list">
               {chapters.map((chapter) => {
                 const expanded = expandedChapter === chapter.number;
-                const done = saved.completedChapters.includes(chapter.number);
+                const made = lessonsForChapter(chapter.number);
+                const done = made.length > 0 && made.every(lesson => passedMedicalLessons.includes(lesson.id));
                 return (
                   <article className={expanded ? "cpc-chapter expanded" : "cpc-chapter"} key={chapter.number}>
                     <button className="cpc-chapter-head" onClick={() => setExpandedChapter(expanded ? null : chapter.number)}>
                       <span className="cpc-chapter-no">{String(chapter.number).padStart(2, "0")}</span>
-                      <span className="cpc-chapter-name"><b>{chapter.title}</b><small>{chapter.phase === "Foundation" ? "基础知识" : chapter.phase === "Body Systems" ? "人体系统" : "医学专科"} · {chapter.topics.length} 个主题</small></span>
+                      <span className="cpc-chapter-name"><b>{chapter.title}</b><small>{chapter.phase === "Foundation" ? "基础知识" : chapter.phase === "Body Systems" ? "人体系统" : "医学专科"} · {chapter.topics.length}个主题 · {made.length ? made.length + "节课已制作" : "授课内容待制作"}</small></span>
                       {done && <CheckCircle2 className="cpc-done-icon" size={18} />}
                       {expanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                     </button>
@@ -273,9 +283,7 @@ export default function CpcLearningCenter() {
                       <div className="cpc-chapter-body">
                         <div className="cpc-topic-list">{chapter.topics.map((topic) => <span key={topic}>{topic}</span>)}</div>
                         <div className="cpc-connection"><b>与 CPC 工作的联系</b><p>{chapter.codingConnection}</p></div>
-                        <button className={done ? "cpc-secondary" : "cpc-primary"} onClick={() => toggleChapterComplete(chapter.number)}>
-                          {done ? <><Check size={15} /> 已完成 · 取消标记</> : <>标记本章已学完 <CheckCircle2 size={15} /></>}
-                        </button>
+                        <Link className="cpc-primary" href={"/cpc/learn/?chapter=" + chapter.number}>{made.length ? "进入本章课程" : "查看本章课程计划"} <ArrowRight size={15}/></Link>
                       </div>
                     )}
                   </article>
