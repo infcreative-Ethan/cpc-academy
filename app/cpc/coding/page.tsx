@@ -363,9 +363,9 @@ export default function ProfessionalCodingPage() {
 
         {tab === "exam" && (
           <section className="coding-panel">
-            <div className="coding-heading"><div><span className="coding-eyebrow">AAPC CPC EXAM BLUEPRINT</span><h2>按官方考试领域分配复习时间</h2><p>当前展示 AAPC 公布的 CPC 考试结构；正式考试以 AAPC 最新公告为准。</p></div></div>
+            <div className="coding-heading"><div><span className="coding-eyebrow">AAPC CPC EXAM BLUEPRINT</span><h2>按官方考试领域分配复习时间</h2><p>按 AAPC 公布的17个专业知识领域和10个独立病例题组织；正式考试以 AAPC 最新公告为准。</p></div></div>
             <div className="coding-exam-summary">
-              <div><strong>100</strong><span>选择题</span></div><div><strong>240</strong><span>分钟</span></div><div><strong>70%</strong><span>通过标准</span></div><div><strong>17</strong><span>考核领域</span></div>
+              <div><strong>100</strong><span>选择题</span></div><div><strong>240</strong><span>分钟</span></div><div><strong>70%</strong><span>通过标准</span></div><div><strong>17</strong><span>专业知识领域（另有10个病例题）</span></div>
             </div>
             <div className="coding-card">
               <div className="coding-card-title"><GraduationCap size={17} /><b>100题考试领域分布</b><span>{totalExamQuestions} / 100</span></div>
