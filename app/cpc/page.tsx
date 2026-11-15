@@ -260,7 +260,7 @@ export default function CpcLearningCenter() {
 
         {panel === "book" && (
           <section className="cpc-panel">
-            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">THE LANGUAGE OF MEDICINE · 13TH EDITION</span><h2>按原书目录学习 22 章</h2><p>目前已制作17节独立课程（Chapter 1–5 的部分课时）；未制作的章节仅显示目录。课程知识检测通过后才记录进度。</p></div><span className="cpc-pill">{completedCount}/{medicalLessons.length} 已通过课时</span></div>
+            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">THE LANGUAGE OF MEDICINE · 13TH EDITION</span><h2>按原书目录学习 22 章</h2><p>目前已制作41节独立课程（Chapter 1–9）；后续章节仅显示目录。课程知识检测通过后才记录进度。</p></div><span className="cpc-pill">{completedCount}/{medicalLessons.length} 已通过课时</span></div>
             <div className="cpc-phase-intro">
               <div><b>01 · Foundation</b><span>Chapters 1–4 · 医学词汇与人体整体结构</span></div>
               <div><b>02 · Body Systems</b><span>Chapters 5–18 · 人体器官系统</span></div>

@@ -138,14 +138,14 @@ export default function MedicalLearningPage(){
     <header className="learn-top">
       <Link href="/cpc/" className="learn-back"><ArrowLeft size={16}/> 返回学习中心</Link>
       <div className="learn-logo"><span>C</span><b>Medical Foundation</b></div>
-      <span className="learn-beta">首批17节课程</span>
+      <span className="learn-beta">已制作课程</span>
     </header>
     <div className="learn-container">
       <section className="learn-banner">
         <span><GraduationCap size={15}/> MEDICAL LEARNING PATHWAY</span>
         <h1>医学课程，从第一章开始。</h1>
         <p>按照原书22章的顺序学习。每节已制作课程包含原创讲解、医学术语、临床案例和知识检测。</p>
-        <div className="learn-banner-stats"><b>{mastered} / {medicalLessons.length}</b> 首批课程已通过</div>
+        <div className="learn-banner-stats"><b>{mastered} / {medicalLessons.length}</b> 医学课程已通过</div>
         {recommended&&<button className="learn-start" onClick={()=>selectLesson(recommended)}>继续推荐：{recommended.zh} <ArrowRight size={15}/></button>}
       </section>
       <div className="learn-layout">

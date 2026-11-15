@@ -1,3 +1,6 @@
+import { moreMedicalLessons57 } from "./cpc-medical-lessons-5-7";
+import { moreMedicalLessons79 } from "./cpc-medical-lessons-7-9";
+
 /**
  * CPC Academy authored lesson pilots.
  *
@@ -283,7 +286,9 @@ export const medicalLessons: MedicalLesson[] = [
       {question:"Crohn's disease 属于哪种基本疾病类别？",options:["炎症性肠病","细菌性肺炎","心律失常","骨折"],answer:0,explanation:"Crohn's disease 是炎症性肠病。"},
       {question:"本次就诊写 No endoscopy was performed，说明什么？",options:["应报告内镜操作","本次未进行内镜操作","已确诊结肠癌","无法判断是否有腹痛"],answer:1,explanation:"否定的操作记录不能当作已执行的服务。"}
     ]
-  }
+  },
+  ...moreMedicalLessons57,
+  ...moreMedicalLessons79
 ];
 
 export const lessonsForChapter = (chapter:number) =>
