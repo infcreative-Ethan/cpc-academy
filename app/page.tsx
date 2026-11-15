@@ -38,8 +38,9 @@ function normalizeChinese(value: string) {
 }
 
 function matchesChineseMeaning(answer: string, expected: string) {
-  const target = normalizeChinese(expected);
-  const variants = expected.split(/[;；,，、/／|]+/).map(normalizeChinese).filter(Boolean);
+  const clean = (value: string) => normalizeChinese(value.replace(/\\([^)]*\\)/g, ""));
+  const target = clean(expected);
+  const variants = expected.split(/[;；,，、/／|]+/).map(clean).filter(Boolean);
   const candidate = normalizeChinese(answer);
   return candidate === target || variants.includes(candidate);
 }
