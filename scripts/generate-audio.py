@@ -74,10 +74,16 @@ def main() -> None:
         if not term_match:
             continue
         term = unescape_ts_string(term_match.group(1))
+        definition_match = re.search(r'definition:"((?:\\.|[^"\\])*)"', line)
         example_match = re.search(r'example:"((?:\\.|[^"\\])*)"', line)
         if term.lower() not in included:
-            terms.append({"term": term})
+            terms.append({"term": term, "definition": unescape_ts_string(definition_match.group(1)) if definition_match else ""})
             included.add(term.lower())
+        elif definition_match:
+            for item in terms:
+                if item["term"].lower() == term.lower() and not item.get("definition"):
+                    item["definition"] = unescape_ts_string(definition_match.group(1))
+                    break
         if example_match:
             example = unescape_ts_string(example_match.group(1))
             if example.strip():
@@ -97,16 +103,17 @@ def main() -> None:
     words_dir = output_dir / "words"
     parts_dir = output_dir / "parts"
     examples_dir = output_dir / "examples"
-    for folder in (words_dir, parts_dir, examples_dir):
+    definitions_dir = output_dir / "definitions"
+    for folder in (words_dir, parts_dir, examples_dir, definitions_dir):
         folder.mkdir(parents=True, exist_ok=True)
 
     voice = PiperVoice.load(args.model)
-    generated = {"words": 0, "parts": 0, "examples": 0}
+    generated = {"words": 0, "definitions": 0, "parts": 0, "examples": 0}
     failures: list[str] = []
 
     with tempfile.TemporaryDirectory(prefix="cpc-audio-") as temp:
         temp_dir = Path(temp)
-        total = len(terms) + len(parts) + len(starter_examples)
+        total = len(terms) + sum(1 for item in terms if item.get("definition", "").strip()) + len(parts) + len(starter_examples)
         current = 0
 
         def make(text: str, path: Path, label: str, bucket: str) -> None:
@@ -125,6 +132,10 @@ def main() -> None:
             term = item["term"]
             path = words_dir / f"{index:04d}-{slug(term)}.mp3"
             make(term, path, f"word {term}", "words")
+            definition = item.get("definition", "").strip()
+            if definition:
+                definition_path = definitions_dir / f"{index:04d}-{slug(term)}.mp3"
+                make(definition, definition_path, f"definition for {term}", "definitions")
 
         for index, item in enumerate(parts, start=1):
             part = item["part"]
