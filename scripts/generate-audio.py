@@ -26,9 +26,9 @@ def unescape_ts_string(value: str) -> str:
 
 def speech_text(value: str) -> str:
     # Expand common glossary punctuation without changing the displayed term.
-    value = re.sub(r";\\s*pl\\.?", ", plural", value, flags=re.IGNORECASE)
+    value = re.sub(r";\s*pl\.?", ", plural", value, flags=re.IGNORECASE)
     value = value.replace(";", ",")
-    return re.sub(r"\\s+", " ", value).strip()
+    return re.sub(r"\s+", " ", value).strip()
 
 
 def synthesize_mp3(voice: PiperVoice, text: str, destination: Path, temp_dir: Path) -> None:
@@ -63,16 +63,16 @@ def main() -> None:
 
     # Match lib/book-words.ts: book terms first, then any starter terms not in the book list.
     included = {item["term"].lower() for item in terms}
-    starter_words_section = starter_source.split("export const words: MedicalWord[] = [", 1)[1].split("\\n];", 1)[0]
+    starter_words_section = starter_source.split("export const words: MedicalWord[] = [", 1)[1].split("\n];", 1)[0]
     starter_examples: list[tuple[str, str]] = []
     for line in starter_words_section.splitlines():
         if 'id:"med-' not in line:
             continue
-        term_match = re.search(r'term:"((?:\\\\.|[^"\\\\])*)"', line)
+        term_match = re.search(r'term:"((?:\\.|[^"\\])*)"', line)
         if not term_match:
             continue
         term = unescape_ts_string(term_match.group(1))
-        example_match = re.search(r'example:"((?:\\\\.|[^"\\\\])*)"', line)
+        example_match = re.search(r'example:"((?:\\.|[^"\\])*)"', line)
         if term.lower() not in included:
             terms.append({"term": term})
             included.add(term.lower())
@@ -85,7 +85,7 @@ def main() -> None:
     parts = list(vocabulary["parts"])
     part_section = starter_source.split("export const wordParts: WordPart[] = [", 1)[1].split("];", 1)[0]
     part_seen = {item["part"].lower() for item in parts}
-    for raw_part in re.findall(r'part: "((?:\\\\.|[^"\\\\])*)"', part_section):
+    for raw_part in re.findall(r'part: "((?:\\.|[^"\\])*)"', part_section):
         part = unescape_ts_string(raw_part)
         if part.lower() not in part_seen:
             parts.append({"part": part})
@@ -147,11 +147,11 @@ def main() -> None:
         "counts": generated,
         "total": sum(generated.values()),
     }
-    (output_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    (output_dir / "manifest.json").write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(manifest, ensure_ascii=False, indent=2))
     if failures:
         print("Audio generation failures:")
-        print("\\n".join(failures))
+        print("\n".join(failures))
         raise SystemExit(1)
 
 
