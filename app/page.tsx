@@ -650,6 +650,19 @@ export default function HomePage() {
           <div className="word-preview">{dueWords.length?dueWords.map(w=><button key={w.id} className="preview-row" onClick={()=>{setSelected(w);changeTab("words");}}><span className="word-initial"><RotateCcw size={16}/></span><span className="preview-term"><b>{w.term}</b><small>{w.definition}</small></span><span className="preview-zh">{w.meaning || "查看英文释义"}</span><ArrowRight size={16}/></button>):<div className="empty-state">目前没有待复习词汇。完成练习后，答错的词会自动加入这里。</div>}</div>
           <button className="reset-button" onClick={()=>{if(window.confirm("确定清空本设备上的 CPC Academy 学习记录吗？")){update(emptyProgress);}}}>清空本地学习记录</button>
         </div>}
+        {dictionaryOpen && <div className="dictionary-backdrop" onClick={()=>setDictionaryOpen(false)}>
+          <section className="dictionary-modal" role="dialog" aria-modal="true" aria-label="英汉词典" onClick={event=>event.stopPropagation()}>
+            <div className="dictionary-modal-top"><div><span className="daily-kicker">OFFLINE ENGLISH-CHINESE DICTIONARY</span><h2>单词翻译</h2></div><button className="dictionary-close" onClick={()=>setDictionaryOpen(false)} aria-label="关闭">×</button></div>
+            <div className="dictionary-entry-word">{dictionaryWord}</div>
+            {dictionaryLoading ? <p className="dictionary-status">正在读取内置离线词典…</p> : dictionaryTranslation ? <div className="dictionary-translation"><span>中文释义 · 离线词典</span><p>{dictionaryTranslation}</p></div> : <p className="dictionary-status">内置词典暂未收录该词。你仍可在下方补充中文释义并加入生词本。</p>}
+            <label className="dictionary-input-label">中文释义（可修改）</label>
+            <input className="dictionary-translation-input" value={dictionaryTranslation} onChange={event=>setDictionaryTranslation(event.target.value)} placeholder="输入或修改中文翻译…" />
+            <div className="dictionary-modal-actions">
+              <button className="secondary-button" onClick={()=>setDictionaryOpen(false)}>关闭</button>
+              <button className="primary-button" onClick={addDictionaryWord}>{allWords.some(word=>word.term.toLowerCase()===dictionaryWord.toLowerCase())?"加入待复习":"加入生词 · Other"}</button>
+            </div>
+          </section>
+        </div>}
         <footer className="page-footer">CPC ACADEMY <span>·</span> PERSONAL STUDY EDITION <span>·</span> V{APP_VERSION}</footer>
       </section>
 
