@@ -38,10 +38,11 @@ The public repository includes a GitHub Actions workflow at `.github/workflows/a
 A push to the `main` branch also starts a build automatically. The workflow uses the standard `ubuntu-24.04` GitHub-hosted runner. Standard GitHub-hosted runners are free for public repositories. The APK artifact is retained for 30 days; download it before it expires.
 
 ## Local Android build
-Install Node.js 22+, Java 21, Android Studio, and Android SDK API 36, then run:
+Install Node.js 22+, Python 3.11, FFmpeg, Java 21, Android Studio, and Android SDK API 36. Install `piper-tts==1.4.2`, download `en_US-kristin-medium` with `python -m piper.download_voices en_US-kristin-medium --data-dir .piper`, then run:
 ```bash
 npm install
 npm run build
+python scripts/generate-audio.py --model .piper/en_US-kristin-medium.onnx --output-dir out/audio
 npx cap add android
 npx cap sync android
 cd android
@@ -50,7 +51,7 @@ cd android
 
 ## Notes
 - Progress is stored locally in the current device/browser using localStorage.
-- Pronunciation uses the device's available en-US speech synthesis voice; Android may need an English voice downloaded in system Text-to-Speech settings.
+- Pronunciation uses pre-generated en-US MP3 files bundled into the APK. Playback does not call Android Text-to-Speech or require an installed voice pack.
 - The app shell is packaged locally; the initial vocabulary and learning features do not require a server.
 - The initial vocabulary set is a starter dataset and should be reviewed against the learner's selected course materials before being treated as an authoritative glossary.
 - The debug APK is signed with Android's debug key and is intended for direct testing/sideload installation, not Play Store distribution.
