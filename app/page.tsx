@@ -33,6 +33,17 @@ function normalize(value: string) {
   return value.trim().toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ");
 }
 
+function normalizeChinese(value: string) {
+  return value.toLowerCase().replace(/[\\s，。；、！？：,.!?;:()（）\\[\\]{}"'“”‘’]/g, "");
+}
+
+function matchesChineseMeaning(answer: string, expected: string) {
+  const target = normalizeChinese(expected);
+  const variants = expected.split(/[;；,，、/／|]+/).map(normalizeChinese).filter(Boolean);
+  const candidate = normalizeChinese(answer);
+  return candidate === target || variants.includes(candidate);
+}
+
 export default function HomePage() {
   const [tab, setTab] = useState<Tab>("home");
   const [progress, setProgress] = useState<StudyProgress>(emptyProgress);
@@ -148,6 +159,60 @@ export default function HomePage() {
   }, [progress.dailyIds, allWords]);
   const dailyCurrentWord = dailyWords[progress.dailyStudyIndex] ?? dailyWords[0];
   const dailyPercent = dailyWords.length ? Math.round((progress.dailyCompletedIds.length / dailyWords.length) * 100) : 0;
+
+  useEffect(() => {
+    if (!dictionaryOpen || !dictionaryWord || !dictionaryReady) return;
+    const key = normalize(dictionaryWord);
+    const translation = dictionaryData[key] ?? dictionaryData[dictionaryWord.toLowerCase()] ?? "";
+    setDictionaryTranslation(translation);
+    setDictionaryLoading(false);
+  }, [dictionaryOpen, dictionaryWord, dictionaryReady, dictionaryData]);
+
+  const lookupDictionaryWord = (word: string) => {
+    setDictionaryWord(word);
+    setDictionaryTranslation("");
+    setDictionaryLoading(!dictionaryReady);
+    setDictionaryOpen(true);
+  };
+
+  const renderDictionaryText = (value: string) => value.split(/([A-Za-z]+(?:[-'][A-Za-z]+)*)/g).map((segment, index) =>
+    /^[A-Za-z]/.test(segment)
+      ? <button type="button" className="dictionary-word-link" key={index} onClick={() => lookupDictionaryWord(segment)}>{segment}</button>
+      : segment
+  );
+
+  const addDictionaryWord = () => {
+    const term = dictionaryWord.trim().toLowerCase();
+    if (!term) return;
+    const existing = allWords.find(word => word.term.toLowerCase() === term);
+    if (existing) {
+      update({ ...progress, reviewIds: Array.from(new Set([...progress.reviewIds, existing.id])) });
+      setDictionaryOpen(false);
+      return;
+    }
+    const id = "custom-" + audioSlug(term);
+    const customWord: MedicalWord = {
+      id,
+      term: dictionaryWord.trim(),
+      meaning: dictionaryTranslation.trim(),
+      definition: "Added from the English definition of " + selected.term + ".",
+      definitionZh: "来自医学词汇 " + selected.term + " 的英文定义。",
+      category: "Other",
+      parts: [],
+      example: "",
+      exampleZh: "",
+    };
+    update({
+      ...progress,
+      customWords: [...(progress.customWords ?? []).filter(word => word.id !== id), customWord],
+      reviewIds: Array.from(new Set([...progress.reviewIds, id])),
+    });
+    setSelected(customWord);
+    setCategory("Other");
+    setQuery("");
+    setDictionaryOpen(false);
+    changeTab("words");
+  };
 
   const reviewPool = useMemo(() => {
     const ids = reviewSessionIds.length ? reviewSessionIds : [...new Set([...progress.dailyIds, ...progress.reviewIds])];
@@ -299,7 +364,9 @@ export default function HomePage() {
 
   const submitReviewAnswer = () => {
     if (!currentReviewWord || !reviewAnswer.trim() || reviewFeedback) return;
-    const correct = normalize(reviewAnswer) === normalize(currentReviewWord.term);
+    const correct = reviewMode === "en-zh"
+      ? matchesChineseMeaning(reviewAnswer, currentReviewWord.meaning)
+      : normalize(reviewAnswer) === normalize(currentReviewWord.term);
     setReviewFeedback(correct ? "correct" : "wrong");
     setReviewAttempts(value => value + 1);
     if (correct) setReviewCorrect(value => value + 1);
