@@ -38,9 +38,10 @@ Key use cases:
 - Local progress and review queue.
 
 ### 3.2 Offline English–Chinese dictionary (repair)
-- Replace the empty dictionary payload at build time with a filtered, single-word ECDICT dataset.
+- Expand the existing book-token dictionary at build time with a filtered, single-word ECDICT dataset.
 - Download source data during CI build; do not require network access at runtime.
 - Include only useful single-word entries with Chinese translations and frequency evidence, plus app vocabulary terms where a dictionary translation is available.
+- Preserve the broad ECDICT dictionary when the medical-vocabulary enrichment step adds or overrides book-specific translations.
 - Preserve ECDICT MIT attribution and license notice.
 - Treat dictionary translations as lookup aids, not authoritative medical definitions.
 
@@ -49,6 +50,7 @@ Key use cases:
 - Group Chapters 1–4 as foundations, Chapters 5–18 as body systems, and Chapters 19–22 as specialties.
 - Show concise chapter topic headings and a CPC relevance note.
 - Show the Mini-Dictionary, Glossary, and four appendices as reference resources.
+- Provide a CPC-center terminology search using the same book vocabulary and word-part data as the existing vocabulary module, with reusable offline word, definition, and word-part audio.
 - Do not redistribute full textbook pages, exercises, images, or long passages.
 
 ### 3.4 Anatomy learning map
@@ -75,13 +77,14 @@ Key use cases:
 
 - [ ] Existing vocabulary, audio, daily learning, review, and local progress continue to work.
 - [ ] CPC Learning Center is accessible from the existing app navigation and home screen.
+- [ ] CPC terminology search reuses the existing textbook word/word-part data and offline pronunciation assets.
 - [ ] All 22 chapter titles appear in the correct order.
 - [ ] Anatomy cards show related textbook chapters and key structures.
 - [ ] At least four simulated cases can be completed and scored.
 - [ ] Case completion and chapter completion persist locally after app restart.
 - [ ] ICD-10-CM, CPT®, and HCPCS Level II are clearly differentiated.
 - [ ] Official source links open correctly.
-- [ ] Offline dictionary is populated during CI build and can be queried offline.
+- [ ] Offline dictionary includes common ECDICT single-word entries plus book terminology, survives the Chinese-enrichment step, and can be queried offline.
 - [ ] TypeScript check and static Next.js export pass.
 - [ ] Android APK build passes and an installable APK is attached to a GitHub Release.
 - [ ] Release notes clearly identify the version as beta until device testing is complete.
@@ -100,6 +103,7 @@ Key use cases:
 - Existing lib/book-vocabulary.json and lib/book-words.ts remain the source of textbook vocabulary in the app.
 - lib/cpc-curriculum.ts holds the chapter navigator, anatomy map, coding concepts, practice cases, and official links.
 - scripts/build-offline-dictionary.py builds a filtered offline dictionary from ECDICT during CI.
+- scripts/enrich-chinese.py enriches book terms and merges those translations into the broad offline dictionary without discarding common-word entries.
 - GitHub Actions performs typecheck, static export, audio generation, Android build, artifact upload, and prerelease creation.
 
 ## 7. Data, licensing, and safety
