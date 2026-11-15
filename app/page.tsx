@@ -174,12 +174,15 @@ export default function HomePage() {
       dailyStudyStarted: false,
       dailyStudyCompleted: false,
     });
+    setReviewSessionIds([]);
+    setReviewActive(false);
+    setReviewFinished(false);
     setDailyShowList(true);
   };
 
   const startDailyStudy = () => {
     if (!dailyWords.length) return;
-    const index = Math.min(progress.dailyStudyIndex, dailyWords.length - 1);
+    const index = progress.dailyStudyCompleted ? 0 : Math.min(progress.dailyStudyIndex, dailyWords.length - 1);
     setSelected(dailyWords[index]);
     update({ ...progress, dailyStudyStarted: true, dailyStudyCompleted: false, dailyStudyIndex: index });
     setDailyShowList(false);
