@@ -17,7 +17,7 @@ jobs:
   build-android:
     name: Build installable Android APK
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 90
 
     steps:
       - name: Check out source
@@ -54,6 +54,18 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+
+      - name: Set up Python for offline audio generation
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Generate offline US English MP3 library
+        run: |
+          python -m pip install --disable-pip-version-check piper-tts==1.4.2
+          python -m piper.download_voices en_US-kristin-medium --data-dir .piper
+          ffmpeg -version
+          python scripts/generate-audio.py --model .piper/en_US-kristin-medium.onnx --output-dir out/audio
 
       - name: Add Capacitor Android platform
         run: npx cap add android
