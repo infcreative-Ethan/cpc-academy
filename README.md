@@ -1,4 +1,4 @@
-# CPC Academy — Vocabulary V0.2.2
+# CPC Academy — Vocabulary V0.2.3
 
 Mobile-first bilingual self-study app for foundational US medical terminology.
 
@@ -6,9 +6,10 @@ Mobile-first bilingual self-study app for foundational US medical terminology.
 - 2,306 textbook Mini-Dictionary terms with the book’s pronunciation respellings and English definitions
 - 878 glossary word parts (combining forms, prefixes, and suffixes)
 - English/Chinese medical vocabulary cards, search, and category filters
-- Pre-generated US English MP3 pronunciation library for all 2,306 textbook terms and glossary word parts
-- Offline playback through the Android media player; no phone TTS engine or downloaded voice pack required
-- Normal and slow playback for vocabulary, roots, and available clinical example sentences
+- Pre-generated US English MP3 pronunciation library for textbook terms and glossary word parts
+- Audio clips include 300 ms leading and 150 ms trailing silence to reduce first-syllable clipping on Android devices
+- Reuses a persistent Android WebView audio player, with normal and slow playback
+- Chinese medical term meanings and Chinese definition translations are enriched before the static app build
 - Listening recognition and typed dictation
 - Word-part/root study and Chinese meaning recall
 - Daily target of 20 new words
@@ -55,3 +56,7 @@ cd android
 - The app shell is packaged locally; the initial vocabulary and learning features do not require a server.
 - The initial vocabulary set is a starter dataset and should be reviewed against the learner's selected course materials before being treated as an authoritative glossary.
 - The debug APK is signed with Android's debug key and is intended for direct testing/sideload installation, not Play Store distribution.
+
+
+## Bilingual vocabulary data
+Before the static build, `scripts/enrich-chinese.py` matches the book terms against bilingual medical terminology and English-Chinese dictionary sources, then fills remaining gaps with Chinese machine-translation references. Machine-translated term meanings are marked in the app for review. The English source definition remains visible alongside its Chinese explanation. The script prints coverage totals in the GitHub Actions log.
