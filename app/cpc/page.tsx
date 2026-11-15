@@ -1,21 +1,23 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft, ArrowRight, BookMarked, BookOpen, Brain, Check, CheckCircle2,
   ChevronDown, ChevronRight, ClipboardCheck, Code2, ExternalLink, FileSearch,
-  FileText, GraduationCap, ListChecks, ShieldCheck, Stethoscope, Target, X
+  FileText, GraduationCap, ListChecks, Search, ShieldCheck, Stethoscope, Target, Volume2, X
 } from "lucide-react";
 import { appendices, bodySystems, chapters, codeSets, officialResources, practiceCases } from "@/lib/cpc-curriculum";
+import { wordParts, words } from "@/lib/book-words";
 
-type Panel = "overview" | "book" | "anatomy" | "cases" | "coding";
+type Panel = "overview" | "book" | "terms" | "anatomy" | "cases" | "coding";
 type SavedProgress = { completedChapters: number[]; completedCases: string[]; caseScores: Record<string, number> };
 const STORAGE_KEY = "cpc-academy-coding-progress-v1";
 const emptyProgress: SavedProgress = { completedChapters: [], completedCases: [], caseScores: {} };
 const panels: { id: Panel; label: string; en: string }[] = [
   { id: "overview", label: "学习总览", en: "Overview" },
   { id: "book", label: "教材章节", en: "22 Chapters" },
+  { id: "terms", label: "术语查找", en: "Medical Terms" },
   { id: "anatomy", label: "人体解剖", en: "Anatomy" },
   { id: "cases", label: "病历实战", en: "Case Practice" },
   { id: "coding", label: "编码基础", en: "Code Sets" },
@@ -26,6 +28,10 @@ export default function CpcLearningCenter() {
   const [saved, setSaved] = useState<SavedProgress>(emptyProgress);
   const [ready, setReady] = useState(false);
   const [expandedChapter, setExpandedChapter] = useState<number | null>(1);
+  const [termQuery, setTermQuery] = useState("");
+  const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
+  const [audioMessage, setAudioMessage] = useState("");
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [selectedCaseId, setSelectedCaseId] = useState<string | null>(null);
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -48,10 +54,46 @@ export default function CpcLearningCenter() {
     () => practiceCases.find((item) => item.id === selectedCaseId) ?? null,
     [selectedCaseId]
   );
+  const termMatches = useMemo(() => {
+    const query = termQuery.trim().toLowerCase();
+    if (!query) return words.slice(0, 12);
+    return words.filter((word) => [
+      word.term, word.meaning, word.definition, word.definitionZh ?? "",
+      ...word.parts.flatMap((part) => [part.part, part.meaning, part.meaningZh ?? ""]),
+    ].join(" ").toLowerCase().includes(query)).slice(0, 40);
+  }, [termQuery]);
+  const selectedTerm = termMatches.find((word) => word.id === selectedTermId) ?? termMatches[0] ?? null;
   const score = selectedCase
     ? selectedCase.questions.reduce((total, question, index) => total + (answers[index] === question.answer ? 1 : 0), 0)
     : 0;
   const answeredAll = selectedCase ? selectedCase.questions.every((_, index) => answers[index] !== undefined) : false;
+  const playCpcAudio = (src: string, rate = 1) => {
+    const player = audioRef.current ?? new Audio();
+    audioRef.current = player;
+    player.pause();
+    try { player.currentTime = 0; } catch {}
+    player.src = src;
+    player.playbackRate = rate;
+    player.onplaying = () => setAudioMessage("正在播放离线美式英语发音。");
+    player.onended = () => setAudioMessage("播放完成。");
+    player.onerror = () => setAudioMessage("音频文件未找到或读取失败，请确认 APK 已完成音频打包。");
+    void player.play().catch(() => setAudioMessage("音频播放失败，请点击后重试。"));
+  };
+  const audioSlug = (value: string) => value.toLowerCase().normalize("NFKD")
+    .replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "audio";
+  const playTermAudio = (word: typeof words[number], kind: "word" | "definition" = "word") => {
+    const index = words.findIndex((item) => item.id === word.id);
+    if (index < 0) return;
+    const filename = String(index + 1).padStart(4, "0") + "-" + audioSlug(word.term) + ".mp3";
+    playCpcAudio("/audio/" + (kind === "word" ? "words" : "definitions") + "/" + filename);
+  };
+  const playWordPartAudio = (part: string) => {
+    const index = wordParts.findIndex((item) => item.part === part);
+    if (index < 0) return;
+    const filename = String(index + 1).padStart(4, "0") + "-" + audioSlug(part) + ".mp3";
+    playCpcAudio("/audio/parts/" + filename);
+  };
+
   const completedCount = saved.completedChapters.length;
   const caseCount = saved.completedCases.length;
 
@@ -151,6 +193,59 @@ export default function CpcLearningCenter() {
               </div>
             </div>
             <div className="cpc-notice"><ShieldCheck size={17} /><div><b>学习版边界</b><p>当前 V1.0 是医学理解与编码流程训练工具，不是自动编码器。真实编码必须查阅适用日期的正式代码集、完整病历和付款方规则。</p></div></div>
+          </section>
+        )}
+
+        {panel === "terms" && (
+          <section className="cpc-panel">
+            <div className="cpc-section-heading">
+              <div><span className="cpc-eyebrow">TEXTBOOK MEDICAL VOCABULARY</span><h2>与原有医学词汇库联动</h2><p>直接检索原应用的教材词汇、中文释义、英文定义和词根词缀；发音使用同一套离线 MP3 文件。</p></div>
+              <Link href="/" className="cpc-secondary"><BookOpen size={14} /> 每日学习与复习</Link>
+            </div>
+            <div className="cpc-term-layout">
+              <div className="cpc-card cpc-term-search-card">
+                <label className="cpc-term-searchbar">
+                  <Search size={17} />
+                  <input value={termQuery} onChange={(event) => setTermQuery(event.target.value)} placeholder="搜索英文术语、中文释义或词根…" />
+                  {termQuery && <button type="button" aria-label="清空搜索" onClick={() => setTermQuery("")}><X size={15} /></button>}
+                </label>
+                <div className="cpc-term-results-meta">{termQuery ? `匹配结果：${termMatches.length} 个（最多显示 40 个）` : `教材词库共 ${words.length.toLocaleString()} 个词条 · 显示常用起始词条`}</div>
+                <div className="cpc-term-results">
+                  {termMatches.map((word) => (
+                    <button type="button" key={word.id} className={selectedTerm?.id === word.id ? "cpc-term-result active" : "cpc-term-result"} onClick={() => setSelectedTermId(word.id)}>
+                      <b>{word.term}</b><small>{word.meaning || "中文释义待补充"}</small>
+                    </button>
+                  ))}
+                  {!termMatches.length && <p className="cpc-term-empty">没有找到匹配词条。可以尝试更短的英文词根或中文关键词。</p>}
+                </div>
+              </div>
+              <div className="cpc-card cpc-term-detail-card">
+                {selectedTerm ? (
+                  <>
+                    <div className="cpc-term-detail-top"><span>MEDICAL TERM</span><small>{selectedTerm.category}</small></div>
+                    <h3>{selectedTerm.term}</h3>
+                    <p className="cpc-term-meaning">{selectedTerm.meaning || "中文释义待补充"}</p>
+                    <div className="cpc-term-actions">
+                      <button className="cpc-secondary" onClick={() => playTermAudio(selectedTerm)}><Volume2 size={14} /> 单词发音</button>
+                      <button className="cpc-secondary" disabled={!selectedTerm.definition} onClick={() => playTermAudio(selectedTerm, "definition")}><Volume2 size={14} /> 朗读英文定义</button>
+                    </div>
+                    <div className="cpc-term-definition"><b>English definition</b><p>{selectedTerm.definition || "No English definition available."}</p></div>
+                    {selectedTerm.definitionZh && <div className="cpc-term-definition"><b>中文解释</b><p>{selectedTerm.definitionZh}</p></div>}
+                    <div className="cpc-term-parts">
+                      <b>Word parts · 词根词缀</b>
+                      {selectedTerm.parts.length ? selectedTerm.parts.map((part) => (
+                        <div className="cpc-term-part" key={part.part}>
+                          <span><strong>{part.part}</strong><small>{part.meaning}</small>{part.meaningZh && <small>{part.meaningZh}</small>}</span>
+                          <button type="button" aria-label={`朗读 ${part.part}`} onClick={() => playWordPartAudio(part.part)}><Volume2 size={14} /></button>
+                        </div>
+                      )) : <p>该词条尚未整理词根词缀。</p>}
+                    </div>
+                    {selectedTerm.example && <div className="cpc-term-definition"><b>Example</b><p>{selectedTerm.example}</p>{selectedTerm.exampleZh && <small>{selectedTerm.exampleZh}</small>}</div>}
+                    {audioMessage && <p className="cpc-audio-message">{audioMessage}</p>}
+                  </>
+                ) : <p className="cpc-term-empty">请调整搜索词，选择一个医学术语查看详细内容。</p>}
+              </div>
+            </div>
           </section>
         )}
 
