@@ -1,4 +1,4 @@
-# CPC Academy — Vocabulary V0.2.4
+# CPC Academy — Vocabulary V0.2.5
 
 Mobile-first bilingual self-study app for foundational US medical terminology.
 
@@ -6,10 +6,13 @@ Mobile-first bilingual self-study app for foundational US medical terminology.
 - 2,306 textbook Mini-Dictionary terms with the book’s pronunciation respellings and English definitions
 - 878 glossary word parts (combining forms, prefixes, and suffixes)
 - English/Chinese medical vocabulary cards, search, and category filters
-- Pre-generated US English MP3 pronunciation library for textbook terms and glossary word parts
+- Pre-generated US English MP3 pronunciation library for textbook terms, English definitions, and glossary word parts
 - Audio clips include 300 ms leading and 150 ms trailing silence to reduce first-syllable clipping on Android devices
 - Reuses a persistent Android WebView audio player, with normal and slow playback
-- Chinese medical term meanings and Chinese definition translations are enriched before the static app build
+- Chinese medical term meanings, English-definition translations, and Chinese root/affix meanings are enriched before the static app build
+- Tap English words inside definitions or word-part descriptions to open the bundled offline English-Chinese dictionary
+- Add selected definition words to a persistent personal vocabulary list under the `Other` category
+- English definitions have their own offline US-English narration clips
 - Daily study sets: choose 20 or 30 new words, keep them in a separate daily list, and study one word per screen with previous/next navigation
 - After completing the daily word set, the app offers a direct transition to configurable multi-round review
 - Listening recognition and typed dictation
