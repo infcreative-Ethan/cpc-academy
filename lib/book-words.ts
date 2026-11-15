@@ -8,17 +8,19 @@ import {
 } from "./words";
 
 type BookTerm = { term: string; pronunciation: string; definition: string; meaning?: string; meaningSource?: string; definitionZh?: string };
-type BookPart = { part: string; meaning: string };
+type BookPart = { part: string; meaning: string; meaningZh?: string };
 
 const starterByTerm = new Map(starterWords.map((word) => [word.term.toLowerCase(), word]));
 const glossaryParts = (data as { parts: BookPart[] }).parts;
 const allPartsByKey = new Map<string, WordPart>();
+const chineseText = (value: string) => (value.match(/[\\u3400-\\u9fff][\\u3400-\\u9fff、，；／/（）() ]*/g) ?? []).join("；").trim();
+const englishText = (value: string) => value.replace(/[\\u3400-\\u9fff][\\u3400-\\u9fff、，；／/（）() ]*/g, "").trim();
 for (const part of [...glossaryParts, ...starterParts]) {
   const key = part.part.toLowerCase();
   const previous = allPartsByKey.get(key);
-  allPartsByKey.set(key, previous
-    ? { part: part.part, meaning: previous.meaning.includes("中文") ? previous.meaning : part.meaning }
-    : { part: part.part, meaning: part.meaning });
+  const zh = part.meaningZh || chineseText(part.meaning) || previous?.meaningZh || (previous ? chineseText(previous.meaning) : "");
+  const en = englishText(part.meaning) || previous?.meaning || part.meaning;
+  allPartsByKey.set(key, { part: part.part, meaning: en, ...(zh ? { meaningZh: zh } : {}) });
 }
 export const wordParts: WordPart[] = [...allPartsByKey.values()];
 
