@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Activity, ArrowRight, AudioLines, BookOpen, Brain, Check, ChevronDown, Download,
+  Activity, ArrowRight, AudioLines, BookOpen, Brain, Check, ChevronDown, ChevronLeft, ChevronRight, Download,
   CircleHelp, Clock3, Flame, Headphones, Home, Layers3, ListChecks, Menu,
   Mic2, PencilLine, Play, Repeat2, RotateCcw, Search, Sparkles, Target, Volume2, X
 } from "lucide-react";
@@ -10,10 +10,10 @@ import { MedicalWord, WordCategory } from "@/lib/words";
 import { wordParts, words } from "@/lib/book-words";
 import { emptyProgress, getTodayKey, loadProgress, saveProgress, StudyProgress } from "@/lib/progress";
 
-type Tab = "home" | "words" | "review" | "listen" | "dictation" | "roots" | "progress";
+type Tab = "home" | "daily" | "words" | "review" | "listen" | "dictation" | "roots" | "progress";
 type DictationMode = "word" | "meaning" | "definition" | "root" | "clinical";
 const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties"];
-const APP_VERSION = "0.2.3";
+const APP_VERSION = "0.2.4";
 
 type AudioStatus = { message: string; kind: "info" | "success" | "error" };
 
@@ -47,6 +47,7 @@ export default function HomePage() {
   const [listeningIndex, setListeningIndex] = useState(0);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [reviewRounds, setReviewRounds] = useState(3);
+  const [dailyShowList, setDailyShowList] = useState(false);
   const [reviewSessionIds, setReviewSessionIds] = useState<string[]>([]);
   const [reviewActive, setReviewActive] = useState(false);
   const [reviewFinished, setReviewFinished] = useState(false);
@@ -86,8 +87,26 @@ export default function HomePage() {
     let saved = loadProgress();
     const today = getTodayKey();
     if (saved.dailyDate !== today) {
-      const candidates = words.filter(w => !saved.knownIds.includes(w.id));
-      saved = { ...saved, dailyDate: today, dailyIds: candidates.slice(0, 20).map(w => w.id) };
+      saved = {
+        ...saved,
+        dailyDate: today,
+        dailyIds: [],
+        dailySize: saved.dailySize === 30 ? 30 : 20,
+        dailyCompletedIds: [],
+        dailyStudyIndex: 0,
+        dailyStudyStarted: false,
+        dailyStudyCompleted: false,
+      };
+      saveProgress(saved);
+    } else {
+      saved = {
+        ...saved,
+        dailySize: saved.dailySize === 30 ? 30 : 20,
+        dailyCompletedIds: saved.dailyCompletedIds ?? [],
+        dailyStudyIndex: saved.dailyStudyIndex ?? 0,
+        dailyStudyStarted: saved.dailyStudyStarted ?? false,
+        dailyStudyCompleted: saved.dailyStudyCompleted ?? false,
+      };
       saveProgress(saved);
     }
     setProgress(saved);
@@ -101,14 +120,15 @@ export default function HomePage() {
   };
 
   const dailyWords = useMemo(() => {
-    const ids = progress.dailyIds.length ? progress.dailyIds : words.slice(0,20).map(w=>w.id);
-    return ids.map(id=>words.find(w=>w.id===id)).filter((w): w is MedicalWord => Boolean(w));
+    return progress.dailyIds.map(id=>words.find(w=>w.id===id)).filter((w): w is MedicalWord => Boolean(w));
   }, [progress.dailyIds]);
+  const dailyCurrentWord = dailyWords[progress.dailyStudyIndex] ?? dailyWords[0];
+  const dailyPercent = dailyWords.length ? Math.round((progress.dailyCompletedIds.length / dailyWords.length) * 100) : 0;
 
   const reviewPool = useMemo(() => {
     const ids = reviewSessionIds.length ? reviewSessionIds : [...new Set([...progress.dailyIds, ...progress.reviewIds])];
     const pool = ids.map(id => words.find(w => w.id === id)).filter((w): w is MedicalWord => Boolean(w));
-    return pool.length ? pool : dailyWords;
+    return pool;
   }, [reviewSessionIds, progress.dailyIds, progress.reviewIds, dailyWords]);
   const currentReviewWord = reviewPool[reviewIndex];
 
@@ -123,13 +143,71 @@ export default function HomePage() {
   }, [progress.reviewIds]);
 
   const accuracy = progress.attempts ? Math.round(progress.correct / progress.attempts * 100) : 0;
-  const studiedToday = dailyWords.filter(w=>progress.knownIds.includes(w.id)).length;
+  const studiedToday = dailyWords.filter(w=>progress.dailyCompletedIds.includes(w.id)).length;
+  const dailyTarget = progress.dailySize;
 
   const markKnown = (word: MedicalWord) => {
     update({ ...progress, knownIds: Array.from(new Set([...progress.knownIds, word.id])), reviewIds: progress.reviewIds.filter(id=>id!==word.id) });
   };
   const markReview = (word: MedicalWord) => {
     update({ ...progress, reviewIds: Array.from(new Set([...progress.reviewIds, word.id])) });
+  };
+
+  const generateDailySet = (size: 20 | 30 = progress.dailySize) => {
+    const known = new Set(progress.knownIds);
+    const due = new Set(progress.reviewIds);
+    const fresh = words.filter(word => !known.has(word.id) && !due.has(word.id));
+    const fallback = words.filter(word => !known.has(word.id));
+    const source = fresh.length >= size ? fresh : fallback;
+    const shuffled = [...source];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    const chosen = shuffled.slice(0, Math.min(size, shuffled.length));
+    update({
+      ...progress,
+      dailySize: size,
+      dailyIds: chosen.map(word => word.id),
+      dailyCompletedIds: [],
+      dailyStudyIndex: 0,
+      dailyStudyStarted: false,
+      dailyStudyCompleted: false,
+    });
+    setDailyShowList(true);
+  };
+
+  const startDailyStudy = () => {
+    if (!dailyWords.length) return;
+    const index = Math.min(progress.dailyStudyIndex, dailyWords.length - 1);
+    setSelected(dailyWords[index]);
+    update({ ...progress, dailyStudyStarted: true, dailyStudyCompleted: false, dailyStudyIndex: index });
+    setDailyShowList(false);
+    changeTab("daily");
+  };
+
+  const showDailyWord = (index: number) => {
+    if (index < 0 || index >= dailyWords.length) return;
+    setSelected(dailyWords[index]);
+    update({ ...progress, dailyStudyIndex: index });
+  };
+
+  const nextDailyWord = () => {
+    if (!dailyCurrentWord) return;
+    const completed = Array.from(new Set([...progress.dailyCompletedIds, dailyCurrentWord.id]));
+    if (progress.dailyStudyIndex + 1 >= dailyWords.length) {
+      update({ ...progress, dailyCompletedIds: completed, dailyStudyCompleted: true, dailyStudyStarted: false });
+      setDailyShowList(false);
+      return;
+    }
+    const nextIndex = progress.dailyStudyIndex + 1;
+    update({ ...progress, dailyCompletedIds: completed, dailyStudyIndex: nextIndex });
+    setSelected(dailyWords[nextIndex]);
+  };
+
+  const previousDailyWord = () => {
+    if (progress.dailyStudyIndex <= 0) return;
+    showDailyWord(progress.dailyStudyIndex - 1);
   };
 
   const nextQuestion = (mode = dictationMode) => {
@@ -157,6 +235,7 @@ export default function HomePage() {
 
   const navItems: { id: Tab; label: string; en: string; icon: typeof Home }[] = [
     { id:"home", label:"首页", en:"Today", icon:Home },
+    { id:"daily", label:"今日学习", en:"Daily Study", icon:BookOpen },
     { id:"words", label:"词汇库", en:"Vocabulary", icon:BookOpen },
     { id:"review", label:"复习", en:"Review Rounds", icon:Repeat2 },
     { id:"listen", label:"听力", en:"Listening", icon:Headphones },
