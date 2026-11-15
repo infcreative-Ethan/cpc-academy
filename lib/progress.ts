@@ -1,5 +1,9 @@
+import type { MedicalWord } from "@/lib/words";
+
 export type StudyProgress = {
   knownIds: string[];
+  customWords: MedicalWord[];
+  reviewMode: "dictation" | "zh-en" | "en-zh";
   reviewIds: string[];
   attempts: number;
   correct: number;
@@ -20,6 +24,8 @@ export const STORAGE_KEY = "cpc-academy-progress-v1";
 
 export const emptyProgress: StudyProgress = {
   knownIds: [],
+  customWords: [],
+  reviewMode: "dictation",
   reviewIds: [],
   attempts: 0,
   correct: 0,
