@@ -32,3 +32,94 @@
 .audio-help-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
 .audio-help-actions .inline-audio{font-size:10px}
 @media(max-width:760px){.audio-notice{padding:9px 14px;font-size:10px}.audio-help-actions{gap:6px}.audio-help-actions .inline-audio{font-size:9px;padding:7px 8px}}
+
+
+/* Dedicated daily vocabulary study flow */
+.daily-page{max-width:980px}
+.daily-selection-card,.daily-lesson-wrap,.daily-complete-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:22px;margin:18px 0 25px;box-shadow:0 8px 24px #25294306}
+.daily-selection-heading,.daily-lesson-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.daily-kicker{display:block;color:#8b82d7;font-size:9px;font-weight:900;letter-spacing:1.25px}
+.daily-selection-heading h2,.daily-lesson-top h2{font:800 18px Manrope,'Noto Sans SC';margin:7px 0 6px;color:#303348}
+.daily-selection-heading p{font-size:11px;line-height:1.7;color:#9297a5;margin:0}
+.daily-selection-icon{width:48px;height:48px;flex-shrink:0;border-radius:14px;background:#f0eeff;color:#695bd5;display:grid;place-items:center}
+.daily-size-options{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin:20px 0}
+.daily-size-options button{display:flex;align-items:center;gap:13px;text-align:left;border:1px solid #e5e4ef;background:#fbfbfe;border-radius:11px;padding:13px 15px;color:#6e7284}
+.daily-size-options button b{font:800 25px Manrope;color:#3a3d51}
+.daily-size-options button span{font-size:10px;line-height:1.5}
+.daily-size-options button.daily-size-active{border-color:#8175e1;background:#f4f2ff;box-shadow:0 0 0 2px #8275e21c}
+.daily-size-options button.daily-size-active b{color:#6658d8}
+.daily-set-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:17px;margin-top:5px}
+.daily-set-toolbar>div{display:flex;flex-direction:column;gap:4px}
+.daily-set-toolbar b{font-size:12px;color:#36394c}
+.daily-set-toolbar span{font-size:9px;color:#989dac}
+.daily-set-toolbar .secondary-button{white-space:nowrap}
+.daily-set-note{margin:12px 0;padding:10px 12px;border-radius:8px;background:#fff8e9;color:#9b722a;font-size:10px;line-height:1.6}
+.daily-word-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:14px;max-height:390px;overflow:auto;padding-right:3px}
+.daily-word-row{display:flex;align-items:center;gap:9px;min-width:0;padding:9px 10px;border:1px solid #eeeef4;border-radius:9px;background:#fdfdff}
+.daily-word-number{font:800 9px Manrope;color:#aaa8c0;width:20px;flex-shrink:0}
+.daily-word-copy{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1}
+.daily-word-copy b{font:700 11px Manrope;color:#35384a;overflow-wrap:anywhere}
+.daily-word-copy span{font-size:9px;color:#858a9a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.daily-word-state{font-size:8px;color:#9a9dac;background:#f1f1f6;border-radius:5px;padding:4px 6px;flex-shrink:0}
+.daily-word-state.done{color:#21845d;background:#eaf7f0}
+.daily-list-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:16px}
+.daily-list-footer>span{font-size:10px;color:#858a9a}
+.daily-list-footer .primary-button{white-space:nowrap}
+.daily-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:34px 12px;color:#9a9eac;text-align:center}
+.daily-empty svg{color:#8a80d9}
+.daily-empty b{font-size:12px;color:#55596a}
+.daily-empty span{font-size:10px}
+.daily-back-link{display:flex;align-items:center;justify-content:center;gap:5px;margin:14px auto 0;border:0;background:transparent;color:#7469ce;font-size:10px;font-weight:700}
+.daily-lesson-wrap{padding:0;border:0;background:transparent;box-shadow:none}
+.daily-lesson-top{margin-bottom:14px}
+.daily-lesson-top h2{font-size:17px;margin-bottom:0}
+.daily-lesson-progress{background:#fff;border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:13px}
+.daily-progress-label{display:flex;justify-content:space-between;align-items:center;font-size:10px;color:#8b90a0;margin-bottom:9px}
+.daily-progress-label b{font:800 11px Manrope;color:#514b9c}
+.daily-progress-track{height:6px;background:#eeedf5;border-radius:20px;overflow:hidden}
+.daily-progress-track>span{display:block;height:100%;border-radius:20px;background:linear-gradient(90deg,#8b7fea,#5d50c7);transition:width .2s}
+.daily-word-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:25px 27px;box-shadow:0 8px 24px #25294306}
+.daily-word-meta{display:flex;align-items:center;justify-content:space-between;color:#969aaa;font-size:9px;font-weight:800;letter-spacing:.6px}
+.daily-word-meta span:first-child{background:#f0eeff;color:#6b5dce;border-radius:5px;padding:5px 8px}
+.daily-term{font:800 32px/1.2 Manrope,'Noto Sans SC';color:#2e3043;margin:22px 0 7px;overflow-wrap:anywhere}
+.daily-meaning{font-size:16px;font-weight:700;color:#6659c9}
+.daily-audio-actions{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 21px}
+.daily-detail-section{border-top:1px solid #eeedf3;padding:16px 0}
+.daily-detail-section>span{display:block;font-size:9px;font-weight:900;letter-spacing:.65px;color:#969aaa;margin-bottom:9px}
+.daily-detail-section>p{font-size:12px;line-height:1.8;color:#4f5364;margin:0}
+.daily-definition-zh{margin-top:11px;padding:11px 12px;background:#f8f7ff;border-radius:8px}
+.daily-definition-zh b{font-size:10px;color:#6a5dcb}
+.daily-definition-zh p{font-size:11px;line-height:1.7;color:#626678;margin:5px 0 0}
+.daily-detail-section .parts-row{display:flex;gap:8px;flex-wrap:wrap}
+.daily-detail-section .part-chip{min-width:100px}
+.daily-word-actions{display:flex;gap:8px;flex-wrap:wrap;padding-top:13px;border-top:1px solid #eeedf3}
+.daily-word-navigation{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px}
+.daily-word-navigation>span{font:800 10px Manrope;color:#8c90a0}
+.daily-word-navigation button{min-width:112px;justify-content:center}
+.daily-word-navigation button:disabled,.daily-list-footer button:disabled{opacity:.42;cursor:not-allowed}
+.daily-complete-card{max-width:600px;margin:38px auto;text-align:center;padding:34px 25px}
+.daily-complete-icon{width:60px;height:60px;margin:0 auto 17px;border-radius:50%;display:grid;place-items:center;background:#eaf8f0;color:#23875e}
+.daily-complete-card h2{font:800 22px Manrope,'Noto Sans SC';color:#303348;margin:9px 0}
+.daily-complete-card>p{font-size:11px;line-height:1.8;color:#858a9a;max-width:400px;margin:0 auto}
+.daily-complete-stats{display:flex;justify-content:center;align-items:center;gap:9px;margin:21px 0}
+.daily-complete-stats b{font:800 20px Manrope;color:#5d52c2}
+.daily-complete-stats span{font-size:9px;color:#989dac;margin-right:13px}
+.daily-complete-card .primary-button{margin:0 auto}
+@media(max-width:760px){
+  .daily-selection-card{padding:17px 14px;margin-top:14px}
+  .daily-selection-heading h2{font-size:16px}
+  .daily-selection-icon{width:40px;height:40px}
+  .daily-size-options{gap:7px}
+  .daily-size-options button{padding:11px 9px;gap:8px}
+  .daily-size-options button b{font-size:22px}
+  .daily-size-options button span{font-size:9px}
+  .daily-word-list{grid-template-columns:1fr;max-height:330px}
+  .daily-word-card{padding:19px 16px}
+  .daily-term{font-size:28px;margin-top:18px}
+  .daily-lesson-top h2{font-size:15px}
+  .daily-word-navigation button{min-width:0;flex:1;padding:10px 8px;font-size:10px}
+  .daily-word-navigation{gap:7px}
+  .daily-list-footer{align-items:flex-start;flex-direction:column}
+  .daily-list-footer .primary-button{width:100%;justify-content:center}
+  .daily-complete-card{padding:28px 17px;margin:22px auto}
+}
