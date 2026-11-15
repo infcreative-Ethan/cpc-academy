@@ -390,7 +390,7 @@ export default function HomePage() {
         <nav className="side-nav">
           {navItems.map(item=>{ const Icon=item.icon; return <button key={item.id} className={`nav-item ${tab===item.id?"active":""}`} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}<small>{item.en}</small></span>{tab===item.id&&<span className="nav-dot"/>}</button>; })}
         </nav>
-        <div className="sidebar-bottom"><div className="daily-mini"><div className="daily-mini-icon"><Target size={18}/></div><div><b>每日目标</b><span>20 new words</span></div><strong>{studiedToday}/20</strong></div><div className="sidebar-foot">CPC Academy <span>V0.2.3 · Bilingual audio</span></div></div>
+        <div className="sidebar-bottom"><div className="daily-mini"><div className="daily-mini-icon"><Target size={18}/></div><div><b>每日目标</b><span>{dailyTarget} new words</span></div><strong>{studiedToday}/{dailyTarget}</strong></div><div className="sidebar-foot">CPC Academy <span>V0.2.4 · Daily study</span></div></div>
       </aside>
 
       {mobileMenu && <button aria-label="关闭菜单" className="scrim" onClick={()=>setMobileMenu(false)}/>}
