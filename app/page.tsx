@@ -10,7 +10,7 @@ import { MedicalWord, WordCategory } from "@/lib/words";
 import { wordParts, words } from "@/lib/book-words";
 import { emptyProgress, getTodayKey, loadProgress, saveProgress, StudyProgress } from "@/lib/progress";
 
-type Tab = "home" | "words" | "listen" | "dictation" | "roots" | "progress";
+type Tab = "home" | "words" | "review" | "listen" | "dictation" | "roots" | "progress";
 type DictationMode = "word" | "meaning" | "definition" | "root" | "clinical";
 const categories: ("All" | WordCategory)[] = ["All", "Foundations", "Body Systems", "Conditions", "Procedures", "Specialties"];
 const APP_VERSION = "0.2.0";
@@ -89,6 +89,7 @@ export default function HomePage() {
     const pool = ids.map(id => words.find(w => w.id === id)).filter((w): w is MedicalWord => Boolean(w));
     return pool.length ? pool : dailyWords;
   }, [progress.dailyIds, progress.reviewIds, dailyWords]);
+  const currentReviewWord = reviewPool[reviewIndex];
 
   const filteredWords = useMemo(() => words.filter(w => {
     const matchesQuery = !query || [w.term, w.meaning, w.definition, ...w.parts.map(p=>p.part)].join(" ").toLowerCase().includes(query.toLowerCase());
@@ -233,7 +234,6 @@ export default function HomePage() {
     }
   };
 
-  const currentReviewWord = reviewPool[reviewIndex];
 
   if (!ready) return <main className="loading-screen"><div className="brand-mark">C</div><p>CPC Academy 正在加载…</p></main>;
 
