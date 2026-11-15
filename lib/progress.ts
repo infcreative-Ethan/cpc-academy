@@ -7,6 +7,8 @@ export type StudyProgress = {
   lastStudyDate: string;
   dailyIds: string[];
   dailyDate: string;
+  reviewRounds: number;
+  reviewHistory: { date: string; round: number; correct: number; total: number }[];
 };
 
 export const STORAGE_KEY = "cpc-academy-progress-v1";
@@ -20,6 +22,8 @@ export const emptyProgress: StudyProgress = {
   lastStudyDate: "",
   dailyIds: [],
   dailyDate: "",
+  reviewRounds: 3,
+  reviewHistory: [],
 };
 
 export function getTodayKey() {
