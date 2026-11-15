@@ -49,6 +49,108 @@ function LessonDiagram({kind}:{kind:MedicalDiagram}){
       ].map(x=><g key={x.en}><rect x="140" y={x.y} width="75" height={x.h} rx="8" fill={x.c} stroke="#a4a0c5"/><text x="177" y={x.y+x.h/2+4} textAnchor="middle" fontSize="12" fill="#4b467f">{x.en}</text><text x="228" y={x.y+x.h/2+4} fontSize="12" fill="#5f6577">{x.zh}</text></g>)}
     </svg><p>各区段椎骨数为常见解剖数量，具体病历按临床记录确认。</p>
   </div>;
+
+  if(kind==="nervous")return <div className="learn-anatomy-board">
+    <div className="learn-anatomy-heading"><b>神经系统 · CNS / PNS</b><span>结构关联概念图</span></div>
+    <svg viewBox="0 0 640 270" role="img" aria-label="中枢与周围神经系统的连接示意">
+      <defs><linearGradient id="nerveShade" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#e8e1ff"/><stop offset="100%" stopColor="#d3defd"/></linearGradient></defs>
+      <path d="M88 79Q85 50 116 38Q142 16 171 39Q204 35 210 69Q222 92 201 109L166 120L116 114Q91 106 88 79Z" fill="url(#nerveShade)" stroke="#8877c6" strokeWidth="2"/>
+      <path d="M143 48Q128 65 143 78Q157 90 145 110 M174 45Q159 63 179 78Q189 93 176 107" fill="none" stroke="#8877c6" strokeWidth="2"/>
+      <path d="M157 120V227" stroke="#6d5bb3" strokeWidth="13" strokeLinecap="round"/>
+      <path d="M157 153L109 179M157 174L206 195M157 197L109 224" stroke="#9b91cc" strokeWidth="5" strokeLinecap="round"/>
+      <circle cx="157" cy="94" r="10" fill="#8275cb"/><circle cx="157" cy="153" r="8" fill="#8275cb"/>
+      <path d="M218 75H304M171 191H304M218 205H304" stroke="#a3a0c1" strokeWidth="1.5" strokeDasharray="4 5"/>
+      <text x="315" y="79" fontSize="17" fontWeight="700" fill="#444777">Brain · 脑</text>
+      <text x="315" y="99" fontSize="12" fill="#787e97">中枢神经系统 CNS</text>
+      <text x="315" y="192" fontSize="17" fontWeight="700" fill="#444777">Spinal cord · 脊髓</text>
+      <text x="315" y="212" fontSize="12" fill="#787e97">中枢神经系统 CNS</text>
+      <text x="315" y="240" fontSize="13" fill="#6656b8">Peripheral nerves · 周围神经分支</text>
+    </svg>
+    <p>概念示意：脑和脊髓属于中枢神经系统，外周分布的神经属于周围神经系统；并非按真实比例绘制。</p>
+  </div>;
+  if(kind==="heart")return <div className="learn-anatomy-board">
+    <div className="learn-anatomy-heading"><b>血液流经心脏与肺 · 双循环</b><span>结构关系图</span></div>
+    <svg viewBox="0 0 640 255" role="img" aria-label="右心、肺、左心与体循环血流方向">
+      <rect x="28" y="84" width="130" height="80" rx="15" fill="#dce4ff" stroke="#8394d4" strokeWidth="2"/>
+      <text x="93" y="113" textAnchor="middle" fontSize="18" fontWeight="800" fill="#415a99">右心</text>
+      <text x="93" y="135" textAnchor="middle" fontSize="12" fill="#415a99">RA → RV</text>
+      <text x="93" y="152" textAnchor="middle" fontSize="10" fill="#6f7baa">向肺泵血</text>
+      <rect x="252" y="84" width="130" height="80" rx="15" fill="#e7f3f2" stroke="#75b4b3" strokeWidth="2"/>
+      <text x="317" y="113" textAnchor="middle" fontSize="18" fontWeight="800" fill="#377f81">肺</text>
+      <text x="317" y="135" textAnchor="middle" fontSize="12" fill="#377f81">Lungs</text>
+      <text x="317" y="152" textAnchor="middle" fontSize="10" fill="#5b999a">气体交换</text>
+      <rect x="477" y="84" width="130" height="80" rx="15" fill="#ffe2e5" stroke="#d48c97" strokeWidth="2"/>
+      <text x="542" y="113" textAnchor="middle" fontSize="18" fontWeight="800" fill="#a65767">左心</text>
+      <text x="542" y="135" textAnchor="middle" fontSize="12" fill="#a65767">LA → LV</text>
+      <text x="542" y="152" textAnchor="middle" fontSize="10" fill="#b3747d">向身体泵血</text>
+      <path d="M160 124H245 M384 124H470" fill="none" stroke="#8d82c7" strokeWidth="5" strokeLinecap="round"/>
+      <path d="M236 115L247 124L236 133 M460 115L472 124L460 133" fill="none" stroke="#8d82c7" strokeWidth="3" strokeLinecap="round"/>
+      <text x="210" y="106" textAnchor="middle" fontSize="11" fill="#707c9a">肺动脉</text>
+      <text x="429" y="106" textAnchor="middle" fontSize="11" fill="#ad7386">肺静脉</text>
+      <path d="M542 169V219H93V169" fill="none" stroke="#b78b9f" strokeWidth="4" strokeLinecap="round" strokeDasharray="7 6"/>
+      <text x="318" y="209" textAnchor="middle" fontSize="13" fontWeight="700" fill="#9f738a">体循环：左心 → 全身 → 右心</text>
+      <text x="320" y="31" textAnchor="middle" fontSize="16" fontWeight="700" fill="#6557b2">Pulmonary circulation · 肺循环</text>
+    </svg>
+    <p>RA 右心房、RV 右心室、LA 左心房、LV 左心室。此图强调血流方向，不按真实解剖形态及比例绘制。</p>
+  </div>;
+  if(kind==="respiratory")return <div className="learn-anatomy-board">
+    <div className="learn-anatomy-heading"><b>呼吸道与肺泡 · Respiratory</b><span>气流路径图</span></div>
+    <svg viewBox="0 0 640 270" role="img" aria-label="从鼻咽、气管、左右支气管到肺泡的呼吸通路">
+      <rect x="274" y="28" width="94" height="43" rx="13" fill="#efeaff" stroke="#998aca"/>
+      <text x="321" y="45" textAnchor="middle" fontSize="13" fill="#6555ac">Nose / mouth</text>
+      <text x="321" y="61" textAnchor="middle" fontSize="12" fill="#6555ac">鼻 / 口</text>
+      <path d="M321 72V147" stroke="#a3a7cb" strokeWidth="15" strokeLinecap="round"/>
+      {[90,110,130].map(y=><path key={y} d={"M314 "+y+"H328"} stroke="#edf0fb" strokeWidth="3"/>)}
+      <path d="M321 144L214 181 M321 144L429 181" stroke="#a3a7cb" strokeWidth="12" strokeLinecap="round"/>
+      <path d="M216 181L175 199 M216 181L231 217 M429 181L468 199 M429 181L405 217" stroke="#a3a7cb" strokeWidth="5" strokeLinecap="round"/>
+      <path d="M154 141Q117 165 139 233Q166 249 238 236Q258 204 252 160Q217 126 180 148Z" fill="#e0edfa" stroke="#91a8d8" strokeWidth="2"/>
+      <path d="M490 141Q527 165 505 233Q478 249 406 236Q386 204 392 160Q427 126 464 148Z" fill="#e0edfa" stroke="#91a8d8" strokeWidth="2"/>
+      <path d="M321 145L214 181 M321 145L429 181" stroke="#a3a7cb" strokeWidth="10" strokeLinecap="round"/>
+      <circle cx="214" cy="195" r="13" fill="#becdeb" stroke="#879dd0"/><circle cx="429" cy="195" r="13" fill="#becdeb" stroke="#879dd0"/>
+      <text x="104" y="73" textAnchor="middle" fontSize="14" fontWeight="700" fill="#566392">Alveoli · 肺泡</text>
+      {[71,93,115].map(x=><circle key={x} cx={x} cy="107" r="13" fill="#f6d9df" stroke="#cd93a4"/>)}
+      <path d="M138 118L185 161" stroke="#be9dad" strokeDasharray="5 5" strokeWidth="2"/>
+      <text x="385" y="108" fontSize="14" fontWeight="700" fill="#566392">Trachea · 气管</text>
+      <text x="325" y="264" textAnchor="middle" fontSize="12" fill="#737d99">Bronchi · 支气管 → bronchioles · 细支气管 → alveoli · 肺泡</text>
+    </svg><p>肺泡位于更远端的细支气管通路终末区域。示意图用于理解结构与路径，不代表医学影像。</p>
+  </div>;
+  if(kind==="blood")return <div className="learn-anatomy-board">
+    <div className="learn-anatomy-heading"><b>血液组成 · Blood Components</b><span>血细胞概念图</span></div>
+    <svg viewBox="0 0 640 235" role="img" aria-label="血浆、红细胞、白细胞及血小板示意">
+      <rect x="24" y="30" width="591" height="174" rx="17" fill="#fbf7f3" stroke="#e2d8d6"/>
+      {[[102,96],[142,141],[190,96],[224,151]].map(([x,y],i)=><g key={i}><ellipse cx={x} cy={y} rx="24" ry="16" fill="#e99a9d" stroke="#bf6972" strokeWidth="2"/><ellipse cx={x} cy={y} rx="10" ry="6" fill="#eec1c3"/></g>)}
+      <circle cx="347" cy="119" r="31" fill="#dfd9ef" stroke="#9b91c4" strokeWidth="2"/>
+      <path d="M329 119Q347 90 358 113Q375 136 345 143Q326 140 329 119" fill="#a29ac6"/>
+      {[465,488,508,475].map((x,i)=><circle key={i} cx={x} cy={90+(i%2)*38} r="7" fill="#e2d0a0" stroke="#c4a467"/>)}
+      <path d="M134 54V75M347 53V85M490 57V82" stroke="#a6a4b5" strokeWidth="1.5"/>
+      <text x="134" y="46" textAnchor="middle" fontSize="15" fill="#a45b64" fontWeight="700">RBC · 红细胞</text>
+      <text x="347" y="46" textAnchor="middle" fontSize="15" fill="#605694" fontWeight="700">WBC · 白细胞</text>
+      <text x="490" y="46" textAnchor="middle" fontSize="15" fill="#a68138" fontWeight="700">Platelets</text>
+      <text x="490" y="61" textAnchor="middle" fontSize="12" fill="#a68138">血小板</text>
+      <text x="320" y="189" textAnchor="middle" fontSize="13" fill="#876d60">Plasma · 血浆（液体部分）</text>
+    </svg><p>示意中放大了细胞及血小板的外观，大小比例并非真实。CBC 是对这些血细胞相关参数的实验室检测。</p>
+  </div>;
+  if(kind==="immune")return <div className="learn-anatomy-board">
+    <div className="learn-anatomy-heading"><b>淋巴与免疫系统 · Lymph & Immune</b><span>流动与防御关系图</span></div>
+    <svg viewBox="0 0 640 238" role="img" aria-label="组织液回流、淋巴管、淋巴结、淋巴细胞及静脉回流">
+      <rect x="21" y="77" width="132" height="84" rx="13" fill="#e8f2fc" stroke="#a2bbdb"/>
+      <text x="87" y="111" textAnchor="middle" fontSize="15" fontWeight="700" fill="#5477a0">组织间液</text>
+      <text x="87" y="136" textAnchor="middle" fontSize="12" fill="#5477a0">Interstitial fluid</text>
+      <rect x="194" y="77" width="132" height="84" rx="13" fill="#e9f4e9" stroke="#93ba98"/>
+      <text x="260" y="111" textAnchor="middle" fontSize="15" fontWeight="700" fill="#4f8960">淋巴管</text>
+      <text x="260" y="136" textAnchor="middle" fontSize="12" fill="#4f8960">Lymphatic vessel</text>
+      <rect x="367" y="77" width="132" height="84" rx="13" fill="#e9e5fa" stroke="#a89ccf"/>
+      <text x="433" y="111" textAnchor="middle" fontSize="15" fontWeight="700" fill="#6652aa">淋巴结</text>
+      <text x="433" y="136" textAnchor="middle" fontSize="12" fill="#6652aa">Lymph node</text>
+      <path d="M156 119H187 M329 119H360 M501 119H568" stroke="#8c88bd" strokeWidth="3" strokeLinecap="round"/>
+      {[187,360,568].map(x=><path key={x} d={"M"+(x-10)+" 111L"+x+" 119L"+(x-10)+" 127"} fill="none" stroke="#8c88bd" strokeWidth="2.5"/>)}
+      <text x="564" y="103" textAnchor="middle" fontSize="13" fontWeight="700" fill="#6b5daf">静脉回流</text>
+      <text x="564" y="142" textAnchor="middle" fontSize="10" fill="#87819e">Venous return</text>
+      <text x="320" y="40" textAnchor="middle" fontSize="14" fontWeight="700" fill="#665caa">免疫细胞识别和防御在淋巴组织中进行</text>
+      <rect x="170" y="193" width="300" height="26" rx="13" fill="#f0edfb"/>
+      <text x="320" y="211" textAnchor="middle" fontSize="12" fill="#665caa">B cells · T cells · Antibodies</text>
+    </svg><p>简化的淋巴回流和免疫参与模型；不表示全部实际淋巴路径或淋巴器官位置。</p>
+  </div>;
   return <div className="learn-visual-planes">
     {[
       {name:"Sagittal",zh:"分隔左右",type:"vertical"},
@@ -200,6 +302,11 @@ export default function MedicalLearningPage(){
                 <blockquote className="learn-record">{lesson.clinical.note}</blockquote>
                 <p className="learn-clinical-task">{lesson.clinical.task}</p>
                 <details className="learn-explain"><summary>展开临床分析</summary><p>{lesson.clinical.takeaway}</p></details>
+              </section>
+              <section className="learn-block learn-coding-bridge">
+                <h4><ClipboardCheck size={17}/> 对接 CPC 专业编码</h4>
+                <p>{chapter.codingConnection}</p>
+                <Link href="/cpc/coding/" className="learn-secondary">进入专业编码课程 <ChevronRight size={15}/></Link>
               </section>
               <section className="learn-block learn-quiz">
                 <div className="learn-quiz-title"><h4><ClipboardCheck size={17}/> 本课知识检测</h4><span>两题均答对才通过</span></div>

@@ -1,3 +1,5 @@
+import { medicalLessons1012 } from "./cpc-medical-lessons-10-12";
+import { medicalLessons1314 } from "./cpc-medical-lessons-13-14";
 import { moreMedicalLessons57 } from "./cpc-medical-lessons-5-7";
 import { moreMedicalLessons79 } from "./cpc-medical-lessons-7-9";
 
@@ -9,7 +11,7 @@ import { moreMedicalLessons79 } from "./cpc-medical-lessons-7-9";
  * example cases and quiz questions are independently authored; textbook prose
  * and end-of-chapter questions are not reproduced here.
  */
-export type MedicalDiagram = "word" | "hierarchy" | "quadrants" | "spine" | "planes" | "digestive";
+export type MedicalDiagram = "word" | "hierarchy" | "quadrants" | "spine" | "planes" | "digestive" | "nervous" | "heart" | "respiratory" | "blood" | "immune";
 export type LessonQuestion = {
   question: string;
   options: [string,string,string,string];
@@ -288,7 +290,9 @@ export const medicalLessons: MedicalLesson[] = [
     ]
   },
   ...moreMedicalLessons57,
-  ...moreMedicalLessons79
+  ...moreMedicalLessons79,
+  ...medicalLessons1012,
+  ...medicalLessons1314
 ];
 
 export const lessonsForChapter = (chapter:number) =>

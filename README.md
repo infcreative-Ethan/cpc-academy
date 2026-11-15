@@ -29,7 +29,7 @@ Mobile-first bilingual self-study app for US medical terminology and the CPC cod
 ## Independent Medical Lessons (pilot)
 
 - New static-export-compatible `/cpc/learn/` course route with full 22-chapter navigation.
-- 41 independently authored learning sessions across Chapters 1–9 (initial subset only), 82 knowledge-check questions, mock clinical records, concept diagrams, offline pronunciation where vocabulary assets exist, and local mastery records.
+- 66 independently authored learning sessions across Chapters 1–14 (initial subset only), 132 knowledge-check questions, mock clinical records, concept diagrams, offline pronunciation where vocabulary assets exist, and local mastery records.
 - Per-lesson mastery is recorded after a knowledge check; chapter outline tags alone no longer count as completed study.
 - Chapters and sections without authored content explicitly state that lesson content is not ready.
 - Medical lesson progress is stored separately under `cpc-academy-medical-lessons-v1`, preserving legacy study records.
@@ -105,3 +105,10 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - `/cpc/coding/lesson/` uses query parameters for static-export-compatible navigation and records mastery after passing knowledge checks.
 - The 100 coding-lesson outline entries remain visible. Entries without authored teaching content are labeled pending rather than being freely marked complete.
 - Previous manual checkmarks are preserved in legacy local storage but are not counted as proven mastery. New mastery is saved in the `passedCodingLessons` field.
+
+## Chapters 10–14 course expansion
+
+- 25 independently authored lessons, 50 original knowledge checks, and 25 fictional clinical-record mini-cases covering nervous, cardiovascular, respiratory, blood, lymphatic and immune systems.
+- Five additional on-device SVG concept illustrations: nervous system, cardiopulmonary circulation, respiratory tract, blood cells and lymphatic/immune flow. These are instructional schematics, not medical reference scans.
+- Every medical lesson links to the separate professional coding course and retains individual mastery progress in localStorage.
+- Chapters 15–22 remain in the textbook outline and are not falsely reported as fully authored.
