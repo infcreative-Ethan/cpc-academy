@@ -7,7 +7,7 @@ import {
   wordParts as starterParts,
 } from "./words";
 
-type BookTerm = { term: string; pronunciation: string; definition: string };
+type BookTerm = { term: string; pronunciation: string; definition: string; meaning?: string; meaningSource?: string; definitionZh?: string };
 type BookPart = { part: string; meaning: string };
 
 const starterByTerm = new Map(starterWords.map((word) => [word.term.toLowerCase(), word]));
@@ -53,8 +53,10 @@ export const words: MedicalWord[] = bookTerms.map((item, index) => {
     id: starter?.id ?? `book-${String(index + 1).padStart(4, "0")}`,
     term: item.term,
     pronunciation: item.pronunciation,
-    meaning: starter?.meaning ?? "",
+    meaning: starter?.meaning ?? item.meaning ?? "",
     definition: item.definition,
+    definitionZh: starter?.definitionZh ?? item.definitionZh ?? "",
+    meaningSource: starter?.meaning ? "existing" : item.meaningSource,
     category: starter?.category ?? categoryFor(item.term, item.definition),
     parts: starter?.parts?.length ? starter.parts : inferParts(item.term),
     example: starter?.example ?? "",
