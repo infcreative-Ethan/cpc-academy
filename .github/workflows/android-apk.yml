@@ -47,6 +47,14 @@ jobs:
       - name: Install app dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Set up Python for vocabulary and audio assets
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Enrich bilingual medical vocabulary
+        run: python scripts/enrich-chinese.py
+
       - name: Type check
         run: npm run typecheck
 
@@ -54,11 +62,6 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
-
-      - name: Set up Python for offline audio generation
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
 
       - name: Generate offline US English MP3 library
         run: |
