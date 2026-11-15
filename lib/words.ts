@@ -7,6 +7,7 @@ export type MedicalWord = {
   term: string;
   meaning: string;
   definition: string;
+  pronunciation?: string;
   category: WordCategory;
   parts: WordPart[];
   example: string;
