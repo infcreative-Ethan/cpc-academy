@@ -367,7 +367,7 @@ export default function CpcLearningCenter() {
 
         {panel === "coding" && (
           <section className="cpc-panel">
-            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">U.S. MEDICAL CODE SETS</span><h2>三大编码体系与工作流程</h2><p>先弄清楚每套代码回答什么问题，再学习查找和核验。</p></div></div>
+            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">U.S. MEDICAL CODE SETS</span><h2>三大编码体系与工作流程</h2><p>先弄清楚每套代码回答什么问题，再学习查找和核验。</p></div><Link href="/cpc/coding" className="cpc-primary">进入专业编码学院 <ArrowRight size={15} /></Link></div>
             <div className="cpc-code-grid">
               {codeSets.map((item, index) => (
                 <article className="cpc-code-card" key={item.name}>
