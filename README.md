@@ -1,6 +1,6 @@
-# CPC Academy — Vocabulary V0.2.5
+# CPC Academy — Medical Vocabulary + CPC Learning Center V1.0 Beta
 
-Mobile-first bilingual self-study app for foundational US medical terminology.
+Mobile-first bilingual self-study app for US medical terminology and the CPC coding pathway.
 
 ## Features
 - 2,306 textbook Mini-Dictionary terms with the book’s pronunciation respellings and English definitions
@@ -23,6 +23,21 @@ Mobile-first bilingual self-study app for foundational US medical terminology.
 - Local progress, review queue, and weak-word tracking
 - Responsive mobile navigation
 - Android APK packaging through Capacitor
+
+
+## CPC Learning Center V1.0 Beta
+
+The `/cpc/` learning center is integrated into the existing vocabulary app and includes:
+
+- The 22 chapter titles and chapter-topic navigation from *The Language of Medicine*, 13th Edition
+- Anatomy-by-system reference cards linked to the textbook chapters
+- A terminology lookup panel using the same 2,306+ book terms and 878+ word parts as the vocabulary system
+- Reuse of the existing offline MP3 assets for medical terms, English definitions, and word parts
+- Four simulated clinical documentation cases with answer explanations and local score tracking
+- Introductory ICD-10-CM, CPT®, and HCPCS Level II workflows, with official update links
+- Separate local progress for chapter completion and case practice
+
+The textbook navigation is based on the uploaded 13th-edition table of contents. It does not reproduce textbook chapter prose. CPT® code tables and descriptors are not bundled; CPT® content requires appropriate AMA licensing.
 
 ## Run locally
 ```bash
