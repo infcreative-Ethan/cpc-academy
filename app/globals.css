@@ -22,3 +22,13 @@
 .round-results b{font-size:17px;color:#38334f}
 .round-results small{font-size:10px;color:#6d61cf}
 @media(max-width:760px){.top-actions .language-pill{display:none}.update-button{padding:7px 8px;font-size:9px}.update-notice{padding:9px 14px;font-size:10px}.audio-controls{gap:5px}.audio-controls .speaker-button{font-size:8px;padding:7px}.round-selector{gap:6px}.round-selector button{padding:9px 12px}}
+
+.audio-notice{display:flex;align-items:center;gap:10px;padding:10px 22px;border-bottom:1px solid var(--line);font-size:11px;line-height:1.5}
+.audio-notice span{flex:1;min-width:0}
+.audio-notice button{border:0;background:transparent;color:inherit;font-size:18px;cursor:pointer}
+.audio-notice.success{background:#eef8f1;color:#276b42}
+.audio-notice.info{background:#f1f2fb;color:#4c5274}
+.audio-notice.error{background:#fff0ef;color:#a53b34}
+.audio-help-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+.audio-help-actions .inline-audio{font-size:10px}
+@media(max-width:760px){.audio-notice{padding:9px 14px;font-size:10px}.audio-help-actions{gap:6px}.audio-help-actions .inline-audio{font-size:9px;padding:7px 8px}}
