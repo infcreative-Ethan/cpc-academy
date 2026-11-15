@@ -171,3 +171,5 @@
 
 .definition-hint{font-size:8px;color:#a0a3b0;margin-left:auto;margin-right:4px;white-space:nowrap}
 @media(max-width:760px){.definition-hint{width:100%;margin:0}}
+
+.cpc-nav-link{border-top:1px solid #ffffff16;margin-top:8px;padding-top:14px}.cpc-nav-badge{width:19px;height:19px;border-radius:6px;background:#514a81;color:#d8d3ff;display:grid;place-items:center;font:800 11px Manrope;flex-shrink:0}.cpc-mobile-link{border:0;background:none;color:#9a9eaa;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:52px;text-decoration:none;font-size:8px}.cpc-mobile-link span{width:20px;height:20px;border-radius:6px;background:#efedff;color:#6658d8;display:grid;place-items:center;font:800 11px Manrope}.cpc-mobile-link small{font-size:8px}
