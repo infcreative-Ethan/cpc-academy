@@ -403,6 +403,8 @@ export default function HomePage() {
     if (reviewRound >= reviewRounds) {
       setReviewActive(false);
       setReviewFinished(true);
+      // Rebuild the next session from the latest daily set and review queue.
+      setReviewSessionIds([]);
     } else {
       setReviewRound(value => value + 1);
       setReviewIndex(0);
