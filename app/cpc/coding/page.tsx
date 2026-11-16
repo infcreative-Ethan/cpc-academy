@@ -277,7 +277,7 @@ export default function ProfessionalCodingPage() {
 
         {tab === "workspace" && (
           <section className="coding-panel">
-            <div className="coding-heading"><div><span className="coding-eyebrow">DOCUMENTATION-FIRST PRACTICE</span><h2>实际编码工作台</h2><p>保留原有4份工作台病历，同时新增228份独立病例练习与本地记录功能。所有记录均为虚构教育用途。</p><Link href="/cpc/coding/cases/" className="coding-case-bank-link">进入228份病例库 <ArrowRight size={15}/></Link></div>
+            <div className="coding-heading"><div><span className="coding-eyebrow">DOCUMENTATION-FIRST PRACTICE</span><h2>实际编码工作台</h2><p>保留原有4份工作台病历，同时新增228份独立病例练习与本地记录功能。所有记录均为虚构教育用途。</p><Link href="/cpc/coding/cases/" className="coding-case-bank-link">进入228份病例库 <ArrowRight size={15}/></Link></div></div>
             <div className="coding-workspace-layout">
               <aside className="coding-case-list">
                 {practiceCases.map((item) => (
