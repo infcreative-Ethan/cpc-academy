@@ -6,6 +6,7 @@ import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ChevronRight,ClipboardCheck,C
 import {chapters} from "@/lib/cpc-curriculum";
 import {words} from "@/lib/book-words";
 import {medicalLessons,lessonsForChapter,type MedicalLesson,type MedicalDiagram} from "@/lib/cpc-medical-lessons";
+import PronunciationFeedback from "@/components/pronunciation-feedback";
 import AdvancedMedicalDiagram from "./advanced-diagrams";
 import "./learn.css";
 
@@ -295,6 +296,7 @@ export default function MedicalLearningPage(){
                   return <div className="learn-term" key={item.term}>
                     <div><b>{item.term}</b><span>{item.zh}</span></div><p>{item.note}</p>
                     {available&&<button onClick={()=>playTerm(item.term)} aria-label={"朗读"+item.term}><Volume2 size={15}/></button>}
+                    {available&&<PronunciationFeedback term={item.term} compact/>}
                   </div>;
                 })}</div>
                 {audioStatus&&<p className="learn-audio-note">{audioStatus}</p>}

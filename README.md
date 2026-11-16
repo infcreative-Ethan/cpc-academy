@@ -140,3 +140,10 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - `/cpc/icd10-lookup/` supports code and English-description search, billable-only filtering, and per-device favorites; without successful official downloads it explicitly shows the catalog as unavailable, rather than silently substituting a stale code set.
 - Descriptions alone do NOT include Alphabetic Index, full Tabular List notes, exclusions, or sequencing; they are not sufficient to submit medical claims. Current official references must be consulted.
 - CI now runs a Node/TypeScript data-integrity smoke test that confirms 22 textbook chapters, 116 medical lessons, 100 coding lessons, 228 cases and 100-question exam quotas for nine seeds.
+
+## Medical pronunciation regression fixes
+
+- Correct the US pronunciation of **thoracic** using a vetted eSpeak phoneme override (Cambridge dictionary IPA /θəˈræsɪk/, Piper raw phonemes `θəɹˈæsɪk`). The override applies to standalone words and compounds including thoracic cavity / thoracic duct; the written term never changes.
+- Extend all generated MP3 files to 600 ms leading and 350 ms trailing silence, reducing WebView audio onset clipping on phones. The exact audio model must be validated audibly on a device, since passing phoneme checks does not certify perceived pronunciation.
+- New **发音有误？记录** controls on daily word cards, dictionary term details and medical lessons store an on-device issue list by word and symptom; learners can copy it into a bug report. No patient data or bug telemetry is uploaded.
+- CI runs `scripts/test-pronunciation.py` and validates the forced phoneme mapping against the loaded Piper voice.

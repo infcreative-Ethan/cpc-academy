@@ -186,3 +186,16 @@
 .course-entry-secondary{background:#ffffff13;color:#fff;flex:1 1 auto}
 @media(max-width:760px){.course-entry-panel{grid-template-columns:1fr;padding:16px;gap:12px}.course-entry-title>strong{font-size:14px}.course-entry-actions{max-width:none;justify-content:stretch}.course-entry-primary{flex:1 1 100%}.course-entry-secondary{flex:1 1 calc(50% - 8px);font-size:9px!important}}
 @media(max-width:760px){.cpc-mobile-link{min-width:58px;min-height:50px;touch-action:manipulation}.cpc-mobile-link>svg{color:#6658d8;stroke-width:2.4}.cpc-mobile-link>small{color:#6658d8;font-weight:800;font-size:9px}}
+
+/* Local pronunciation issue log: no uploads or remote collection. */
+.pron-feedback{margin:9px 0 10px;padding:10px;border:1px solid #e7e3f4;border-radius:9px;background:#faf9ff;display:grid;gap:8px;min-width:0}
+.pron-feedback-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pron-feedback-actions select{border:1px solid #ded9ef;border-radius:7px;padding:7px;background:#fff;color:#5e6080;font:10px 'Noto Sans SC',sans-serif;min-width:0;max-width:180px}
+.pron-feedback button{border:1px solid #e2dbf2;border-radius:7px;padding:8px 10px;background:#f1eeff;color:#6959aa;display:inline-flex;align-items:center;gap:6px;font:700 10px 'Noto Sans SC',sans-serif;cursor:pointer}
+.pron-feedback>p{margin:0;color:#6c668d;font-size:9px;line-height:1.6}
+.pron-feedback details{display:grid;gap:7px;min-width:0}
+.pron-feedback summary{font-size:10px;color:#65559e;cursor:pointer;font-weight:700}
+.pron-feedback textarea{display:block;width:100%;margin:9px 0;padding:8px;border:1px solid #ded9ef;border-radius:7px;background:white;color:#62647a;font:10px/1.6 'Noto Sans SC',sans-serif;resize:vertical;box-sizing:border-box}
+.pron-feedback.compact{display:inline-flex;margin:0;padding:0;border:0;background:transparent}
+.pron-feedback.compact button{font-size:8px;padding:6px;border-radius:7px;white-space:nowrap}
+@media(max-width:520px){.pron-feedback-actions select{flex:1;max-width:none}.pron-feedback-actions button{flex:1;justify-content:center}.pron-feedback.compact button{flex:auto}}
