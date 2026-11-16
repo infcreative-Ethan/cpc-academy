@@ -3,7 +3,7 @@
 import {useDeferredValue,useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {ArrowLeft,BookOpen,CheckCircle2,ExternalLink,FileSearch,Search,ShieldCheck,Star} from "lucide-react";
-import "../coding.css";
+import "../coding/coding.css";
 import "./lookup.css";
 
 type Entry=[code:string,longDescription:string,billable:0|1];

@@ -30,6 +30,8 @@ EXPECTED_DATE_END = "2027-09-30"
 
 def parse_order_file(data: bytes):
     results = []
+    rejected = []
+    total_candidates = 0
     for raw in data.decode("latin-1").splitlines():
         if len(raw) < 78:
             continue
@@ -39,12 +41,16 @@ def parse_order_file(data: bytes):
         long_description = raw[77:].strip()
         if not re.fullmatch(r"[0-9]{1,5}", order):
             continue
+        total_candidates += 1
         if not re.fullmatch(r"[A-Z][0-9][A-Z0-9][A-Z0-9]{0,4}", code):
+            rejected.append(("code", repr(raw[:80])))
             continue
         if billable not in ("0", "1") or not long_description:
+            rejected.append(("flag_or_description", repr(raw[:90])))
             continue
         shown_code = code if len(code) == 3 else code[:3] + "." + code[3:]
         results.append([shown_code, long_description, 1 if billable == "1" else 0])
+    print(f"ICD order file parsing: candidates={total_candidates}, accepted={len(results)}, rejected={len(rejected)}, samples={rejected[:15]}", flush=True)
     return results
 
 
