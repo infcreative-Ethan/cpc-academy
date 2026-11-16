@@ -120,3 +120,9 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - Medical foundation total: 116 separate lesson entries with two knowledge checks each (232 questions) and fictional clinical documentation exercises.
 - All 22 chapters now have authored lesson coverage; this **does not imply exhaustive textbook-level content or clinical-coding competency**.
 - Add original vector visual guides for skeletal anatomy, skin layers, eye, ear, endocrine gland location and concept maps for oncology, imaging, pharmacology and psychiatry.
+
+## Full 100-entry professional coding lesson coverage
+
+- All 100 planned coding lesson entries now have a learning page with objectives, topic-specific original explanation, procedure for reference lookup, a fictional documentation example and 2 knowledge-check questions.
+- The added 88 lessons cover ICD-10-CM tabular conventions and guidelines; CPT surgery, specialty coding, radiology/laboratory, medicine, E/M, anesthesia and modifiers; HCPCS Level II; NCCI, medical necessity, HIPAA and audits.
+- Passing the per-lesson check records mastery locally. Content is an independently authored **foundation-level first pass**; not a substitute for guided codebook exercises, current licensed CPT descriptors, payer rules or clinical coding supervision.

@@ -1,3 +1,4 @@
+import { expandedCodingLessons } from "./cpc-coding-lessons-expanded";
 /** Independently authored professional coding lessons; never a substitute for official code sets. */
 export type CodingLessonDetail = { id:string; unitId:string; lessonIndex:number; zh:string; objectives:string[]; sections:{heading:string;body:string}[]; practice:{record:string;prompt:string;explanation:string}; questions:[{question:string;options:[string,string,string,string];answer:number;explanation:string},{question:string;options:[string,string,string,string];answer:number;explanation:string}] };
 export const codingLessonDetails: CodingLessonDetail[] = [
@@ -649,5 +650,6 @@ export const codingLessonDetails: CodingLessonDetail[] = [
       }
     ]
   }
+  ,...expandedCodingLessons
 ];
 export const findCodingLesson = (id:string) => codingLessonDetails.find(x=>x.id===id);
