@@ -9,3 +9,11 @@
 .coding-lesson-list a>b,.coding-lesson-list .coding-lesson-pending>b{font-size:8px;color:#52586a;flex:1}
 .coding-lesson-list a>small,.coding-lesson-list .coding-lesson-pending>small{font-size:7px;color:#999eaa}
 .coding-lesson-list .coding-lesson-pending{opacity:.54;cursor:default}
+
+.coding-shortcuts{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:11px}
+.coding-shortcut-link,.coding-case-bank-link{display:inline-flex;align-items:center;gap:7px;border-radius:8px;padding:10px 13px;background:#f1efff;color:#5f52b5;font-size:9px;font-weight:800;text-decoration:none}
+.coding-hero .coding-shortcut-link{background:#ebe7ff;color:#5948a3}
+.coding-exam-quick{display:flex;gap:10px;margin:0 0 14px;flex-wrap:wrap}
+.coding-exam-quick a{text-decoration:none}
+.coding-case-bank-link{white-space:nowrap;align-self:center}
+@media(max-width:700px){.coding-shortcuts{flex-direction:column;align-items:stretch}.coding-shortcuts>*{width:100%;justify-content:center}.coding-case-bank-link{white-space:normal}}

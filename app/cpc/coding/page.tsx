@@ -13,6 +13,7 @@ import {
   officialCodingResources, type CodingTrack
 } from "@/lib/cpc-professional-curriculum";
 import { codingLessonDetails } from "@/lib/cpc-coding-lesson-content";
+import { caseBankSummary } from "@/lib/cpc-case-bank";
 import "./coding.css";
 
 type Tab = "path" | CodingTrack | "workspace" | "exam";
@@ -133,7 +134,7 @@ export default function ProfessionalCodingPage() {
       <header className="coding-topbar">
         <Link href="/cpc" className="coding-back"><ArrowLeft size={16} /> 返回 CPC Academy</Link>
         <div className="coding-brand"><span className="coding-mark">C</span><span><b>CPC Academy</b><small>PROFESSIONAL CODING</small></span></div>
-        <span className="coding-version">A3.1–A3.4</span>
+        <span className="coding-version">CPC Academy · Course & Cases</span>
       </header>
 
       <section className="coding-content">
@@ -142,7 +143,7 @@ export default function ProfessionalCodingPage() {
             <span className="coding-eyebrow"><GraduationCap size={14} /> PROFESSIONAL CODING PATHWAY</span>
             <h1>从医学理解，<em>进入专业编码。</em></h1>
             <p>以完整病历为起点，学习 ICD-10-CM、CPT®、HCPCS Level II、编码规则和实际审核流程。</p>
-            <button className="coding-primary" onClick={() => selectTab("icd10")}>开始 ICD-10-CM <ArrowRight size={15} /></button>
+            <div className="coding-shortcuts"><button className="coding-primary" onClick={() => selectTab("icd10")}>开始 ICD-10-CM <ArrowRight size={15} /></button><Link href="/cpc/coding/cases/" className="coding-shortcut-link">228份病例库 <FileSearch size={15}/></Link><Link href="/cpc/mock-exam/" className="coding-shortcut-link">100题模拟考试 <GraduationCap size={15}/></Link></div>
           </div>
           <div className="coding-hero-art" aria-hidden="true"><div className="coding-orbit one" /><div className="coding-orbit two" /><div className="coding-center"><Stethoscope size={38} /><b>RECORD</b><span>→ CODE → REVIEW</span></div></div>
         </div>
@@ -150,7 +151,7 @@ export default function ProfessionalCodingPage() {
         <div className="coding-stats">
           <div><BookOpen size={17} /><strong>{codingUnits.length}</strong><span>专业课程单元</span></div>
           <div><ListChecks size={17} /><strong>{authoredLessonCount}</strong><span>已制作详细课时 · 共规划{totalLessonCount}节</span></div>
-          <div><FileSearch size={17} /><strong>{practiceCases.length}</strong><span>病例训练</span></div>
+          <div><FileSearch size={17} /><strong>{caseBankSummary.total}</strong><span>短病例与综合病历</span></div>
           <div><CheckCircle2 size={17} /><strong>{completedLessonCount}/{authoredLessonCount}</strong><span>检测通过课时</span></div>
         </div>
 
@@ -276,7 +277,7 @@ export default function ProfessionalCodingPage() {
 
         {tab === "workspace" && (
           <section className="coding-panel">
-            <div className="coding-heading"><div><span className="coding-eyebrow">DOCUMENTATION-FIRST PRACTICE</span><h2>实际编码工作台</h2><p>用模拟病例练习临床信息提取、代码集选择、文档缺口和审核理由；本版不自动猜测或生成真实索赔代码。</p></div></div>
+            <div className="coding-heading"><div><span className="coding-eyebrow">DOCUMENTATION-FIRST PRACTICE</span><h2>实际编码工作台</h2><p>保留原有4份工作台病历，同时新增228份独立病例练习与本地记录功能。所有记录均为虚构教育用途。</p><Link href="/cpc/coding/cases/" className="coding-case-bank-link">进入228份病例库 <ArrowRight size={15}/></Link></div>
             <div className="coding-workspace-layout">
               <aside className="coding-case-list">
                 {practiceCases.map((item) => (
@@ -364,7 +365,7 @@ export default function ProfessionalCodingPage() {
         {tab === "exam" && (
           <section className="coding-panel">
             <div className="coding-heading"><div><span className="coding-eyebrow">AAPC CPC EXAM BLUEPRINT</span><h2>按官方考试领域分配复习时间</h2><p>按 AAPC 公布的17个专业知识领域和10个独立病例题组织；正式考试以 AAPC 最新公告为准。</p></div></div>
-            <div className="coding-exam-summary">
+            <div className="coding-exam-quick"><Link href="/cpc/mock-exam/" className="coding-primary">开始100题计时模拟 <ArrowRight size={15}/></Link><Link href="/cpc/coding/cases/" className="coding-secondary">练习综合病历 <FileText size={15}/></Link></div><div className="coding-exam-summary">
               <div><strong>100</strong><span>选择题</span></div><div><strong>240</strong><span>分钟</span></div><div><strong>70%</strong><span>通过标准</span></div><div><strong>17</strong><span>专业知识领域（另有10个病例题）</span></div>
             </div>
             <div className="coding-card">

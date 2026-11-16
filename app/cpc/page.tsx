@@ -318,7 +318,7 @@ export default function CpcLearningCenter() {
 
         {panel === "cases" && (
           <section className="cpc-panel">
-            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">CLINICAL DOCUMENTATION PRACTICE</span><h2>{selectedCase ? selectedCase.title : "模拟病历实战"}</h2><p>{selectedCase ? "逐题分析病历中明确记录的事实。" : "练习从英文临床记录中提取信息。所有病例均为教学模拟。"}</p></div>{selectedCase && <button className="cpc-secondary" onClick={backToCases}>返回病例列表</button>}</div>
+            <div className="cpc-section-heading"><div><span className="cpc-eyebrow">CLINICAL DOCUMENTATION PRACTICE</span><h2>{selectedCase ? selectedCase.title : "模拟病历实战"}</h2><p>{selectedCase ? "逐题分析病历中明确记录的事实。" : "原有4个模拟病例继续保留。完整的228份病例库可在专业编码学院练习。"}</p><Link href="/cpc/coding/cases/" className="cpc-primary">进入228份临床病例库 <ArrowRight size={14}/></Link></div>{selectedCase && <button className="cpc-secondary" onClick={backToCases}>返回病例列表</button>}</div>
             {!selectedCase && (
               <div className="cpc-case-grid">
                 {practiceCases.map((item) => {

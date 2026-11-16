@@ -126,3 +126,10 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - All 100 planned coding lesson entries now have a learning page with objectives, topic-specific original explanation, procedure for reference lookup, a fictional documentation example and 2 knowledge-check questions.
 - The added 88 lessons cover ICD-10-CM tabular conventions and guidelines; CPT surgery, specialty coding, radiology/laboratory, medicine, E/M, anesthesia and modifiers; HCPCS Level II; NCCI, medical necessity, HIPAA and audits.
 - Passing the per-lesson check records mastery locally. Content is an independently authored **foundation-level first pass**; not a substitute for guided codebook exercises, current licensed CPT descriptors, payer rules or clinical coding supervision.
+
+## 228-case training bank and structured CPC mock exams
+
+- 228 unique fictional clinical case prompts: 116 medical lesson mini-cases, 100 professional coding lesson mini-cases, and 12 extended integrated documentation records.
+- Case bank: search and filters, coding abstraction notes, favorites, answer feedback, retry, wrong-answer filter and offline browser-local progress.
+- Standalone 100-question 4-hour practice test following AAPC's 17-domain + 10-case *question-count distribution*. 20-question study set, flagging, navigation, persistence through reload, time limit, domain score report and wrong-answer explanations.
+- Questions are **original learning questions, not equivalent in difficulty or authenticity to the AAPC CPC certification exam**. Final specific CPT code selection and claims require the latest authorized codebook and compliance review.
