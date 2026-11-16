@@ -6,6 +6,7 @@ import {ArrowLeft,ArrowRight,BookOpen,CheckCircle2,ChevronRight,ClipboardCheck,C
 import {chapters} from "@/lib/cpc-curriculum";
 import {words} from "@/lib/book-words";
 import {medicalLessons,lessonsForChapter,type MedicalLesson,type MedicalDiagram} from "@/lib/cpc-medical-lessons";
+import AdvancedMedicalDiagram from "./advanced-diagrams";
 import "./learn.css";
 
 type Progress = {passed:Record<string,{score:number;date:string}>;lastLesson:string|null};
@@ -151,6 +152,7 @@ function LessonDiagram({kind}:{kind:MedicalDiagram}){
       <text x="320" y="211" textAnchor="middle" fontSize="12" fill="#665caa">B cells · T cells · Antibodies</text>
     </svg><p>简化的淋巴回流和免疫参与模型；不表示全部实际淋巴路径或淋巴器官位置。</p>
   </div>;
+  if(["skeletal","skin","sense-eye","sense-ear","endocrine","oncology","radiology","pharma","psychiatry"].includes(kind))return <AdvancedMedicalDiagram kind={kind}/>;
   return <div className="learn-visual-planes">
     {[
       {name:"Sagittal",zh:"分隔左右",type:"vertical"},

@@ -29,7 +29,7 @@ Mobile-first bilingual self-study app for US medical terminology and the CPC cod
 ## Independent Medical Lessons (pilot)
 
 - New static-export-compatible `/cpc/learn/` course route with full 22-chapter navigation.
-- 66 independently authored learning sessions across Chapters 1–14 (initial subset only), 132 knowledge-check questions, mock clinical records, concept diagrams, offline pronunciation where vocabulary assets exist, and local mastery records.
+- 116 independently authored learning sessions across Chapters 1–22 (initial pass, not exhaustive textbook coverage), 232 knowledge-check questions, mock clinical records, concept diagrams, offline pronunciation where vocabulary assets exist, and local mastery records.
 - Per-lesson mastery is recorded after a knowledge check; chapter outline tags alone no longer count as completed study.
 - Chapters and sections without authored content explicitly state that lesson content is not ready.
 - Medical lesson progress is stored separately under `cpc-academy-medical-lessons-v1`, preserving legacy study records.
@@ -112,3 +112,11 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - Five additional on-device SVG concept illustrations: nervous system, cardiopulmonary circulation, respiratory tract, blood cells and lymphatic/immune flow. These are instructional schematics, not medical reference scans.
 - Every medical lesson links to the separate professional coding course and retains individual mastery progress in localStorage.
 - Chapters 15–22 remain in the textbook outline and are not falsely reported as fully authored.
+
+## All 22 textbook chapters: authored lesson coverage
+
+- Chapters 15–18: 28 original lessons on musculoskeletal, skin, eye/ear and endocrine systems.
+- Chapters 19–22: 22 original lessons on oncology, radiology/nuclear medicine, pharmacology and psychiatry.
+- Medical foundation total: 116 separate lesson entries with two knowledge checks each (232 questions) and fictional clinical documentation exercises.
+- All 22 chapters now have authored lesson coverage; this **does not imply exhaustive textbook-level content or clinical-coding competency**.
+- Add original vector visual guides for skeletal anatomy, skin layers, eye, ear, endocrine gland location and concept maps for oncology, imaging, pharmacology and psychiatry.

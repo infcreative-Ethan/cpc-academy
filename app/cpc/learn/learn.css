@@ -12,3 +12,11 @@
 .learn-coding-bridge p{font-size:10px;line-height:1.8;color:#565c7a;margin:0 0 11px}
 .learn-coding-bridge a{text-decoration:none}
 @media(max-width:650px){.learn-anatomy-board{padding:8px 5px}.learn-anatomy-heading b{font-size:9px}.learn-anatomy-heading span{font-size:7px}}
+
+.learn-advanced-caption{text-align:center;color:#8d90a4;font-size:8px;line-height:1.7;margin:8px 0 2px}
+.learn-advanced-flow{display:grid;gap:3px}
+.learn-advanced-node{display:grid;justify-items:center;gap:3px}
+.learn-advanced-node>div{width:min(310px,90%);padding:10px;background:#eeeafa;border:1px solid #dcd5f0;border-radius:9px;display:grid;gap:4px;text-align:center}
+.learn-advanced-node b{font-size:11px;color:#554ca4}
+.learn-advanced-node small{font-size:9px;color:#8a83ab}
+.learn-advanced-node>span{font-size:15px;color:#8c80c6}

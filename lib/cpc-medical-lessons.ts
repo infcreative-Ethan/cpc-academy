@@ -1,3 +1,7 @@
+import { medicalLessons1516 } from "./cpc-medical-lessons-15-16";
+import { medicalLessons1718 } from "./cpc-medical-lessons-17-18";
+import { medicalLessons1920 } from "./cpc-medical-lessons-19-20";
+import { medicalLessons2122 } from "./cpc-medical-lessons-21-22";
 import { medicalLessons1012 } from "./cpc-medical-lessons-10-12";
 import { medicalLessons1314 } from "./cpc-medical-lessons-13-14";
 import { moreMedicalLessons57 } from "./cpc-medical-lessons-5-7";
@@ -11,7 +15,7 @@ import { moreMedicalLessons79 } from "./cpc-medical-lessons-7-9";
  * example cases and quiz questions are independently authored; textbook prose
  * and end-of-chapter questions are not reproduced here.
  */
-export type MedicalDiagram = "word" | "hierarchy" | "quadrants" | "spine" | "planes" | "digestive" | "nervous" | "heart" | "respiratory" | "blood" | "immune";
+export type MedicalDiagram = "word" | "hierarchy" | "quadrants" | "spine" | "planes" | "digestive" | "nervous" | "heart" | "respiratory" | "blood" | "immune" | "skeletal" | "skin" | "sense-eye" | "sense-ear" | "endocrine" | "oncology" | "radiology" | "pharma" | "psychiatry";
 export type LessonQuestion = {
   question: string;
   options: [string,string,string,string];
@@ -292,7 +296,11 @@ export const medicalLessons: MedicalLesson[] = [
   ...moreMedicalLessons57,
   ...moreMedicalLessons79,
   ...medicalLessons1012,
-  ...medicalLessons1314
+  ...medicalLessons1314,
+  ...medicalLessons1516,
+  ...medicalLessons1718,
+  ...medicalLessons1920,
+  ...medicalLessons2122
 ];
 
 export const lessonsForChapter = (chapter:number) =>
