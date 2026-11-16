@@ -283,7 +283,7 @@ export default function CpcLearningCenter() {
                       <div className="cpc-chapter-body">
                         <div className="cpc-topic-list">{chapter.topics.map((topic) => <span key={topic}>{topic}</span>)}</div>
                         <div className="cpc-connection"><b>与 CPC 工作的联系</b><p>{chapter.codingConnection}</p></div>
-                        <Link className="cpc-primary" href={"/cpc/learn/?chapter=" + chapter.number}>{made.length ? "进入本章课程" : "查看本章课程计划"} <ArrowRight size={15}/></Link>
+                        <div className="cpc-chapter-actions"><Link className="cpc-primary" href={"/cpc/learn/?chapter=" + chapter.number}>{made.length ? "进入本章课程" : "查看本章课程计划"} <ArrowRight size={15}/></Link><Link className="cpc-secondary" href={"/?tab=chapters&chapter=" + chapter.number} prefetch={false}>本章完整词表 · 学习/复习 <BookMarked size={15}/></Link></div>
                       </div>
                     )}
                   </article>

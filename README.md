@@ -147,3 +147,13 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - Extend all generated MP3 files to 600 ms leading and 350 ms trailing silence, reducing WebView audio onset clipping on phones. The exact audio model must be validated audibly on a device, since passing phoneme checks does not certify perceived pronunciation.
 - New **发音有误？记录** controls on daily word cards, dictionary term details and medical lessons store an on-device issue list by word and symptom; learners can copy it into a bug report. No patient data or bug telemetry is uploaded.
 - CI runs `scripts/test-pronunciation.py` and validates the forced phoneme mapping against the loaded Piper voice.
+
+## Chapter-based vocabulary study — first phase
+
+- The learner's 13th-edition textbook PDF has 22 reliable chapter bookmarks. An offline **metadata-only occurrence index** maps all 2,306 Mini-Dictionary entries, preserving the order in which matched terms first appear in each chapter body (this is **not** a publisher-certified list of required chapter words).
+- Chapter matching counts: 178–383 terms per chapter; terms can belong to several chapters. 11 source entries with no exact chapter body match remain in the general dictionary rather than being assigned arbitrarily.
+- New home **章节词表** tab lets learners browse all 22 chapter lists, filter by learned/known/due/pending, search, view term details, start a chapter-specific 20/30-word batch or run a chapter-specific review (learned-only or all-term test).
+- Daily new words now follow Chapter 1→22, in first-body-appearance order within each chapter, automatically move to the next chapter when the previous one has no remaining unseen terms, and avoid all already-mastered and previously introduced words. After Chapter 22 it offers unmatched dictionary entries and user-added words instead of silently dropping them.
+- Existing daily activity, known words, review queues, review history, local pronunciation reports and other lesson progress keys are preserved. A new `introducedIds` ledger records completed new words for future-day continuation.
+- Direct "本章完整词表" entry from each medical chapter and a visible current-chapter shortcut on the home dashboard.
+- PDF images, detailed A/B/C knowledge-point audit, and one-time PDF import will be implemented in later phases and are **not yet part of this change**.

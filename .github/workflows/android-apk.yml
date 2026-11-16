@@ -67,6 +67,9 @@ jobs:
       - name: Validate 22 medical chapters, 100 coding lessons, 228 cases and mock exam
         run: node scripts/validate-cpc-content.cjs
 
+      - name: Validate chapter vocabulary index and ordered daily study
+        run: node scripts/validate-chapter-vocabulary.cjs
+
       - name: Type check
         run: npm run typecheck
 
