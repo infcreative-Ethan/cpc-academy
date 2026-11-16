@@ -173,3 +173,16 @@
 @media(max-width:760px){.definition-hint{width:100%;margin:0}}
 
 .cpc-nav-link{border-top:1px solid #ffffff16;margin-top:8px;padding-top:14px}.cpc-nav-badge{width:19px;height:19px;border-radius:6px;background:#514a81;color:#d8d3ff;display:grid;place-items:center;font:800 11px Manrope;flex-shrink:0}.cpc-mobile-link{border:0;background:none;color:#9a9eaa;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:52px;text-decoration:none;font-size:8px}.cpc-mobile-link span{width:20px;height:20px;border-radius:6px;background:#efedff;color:#6658d8;display:grid;place-items:center;font:800 11px Manrope}.cpc-mobile-link small{font-size:8px}
+
+/* System courses are the primary learning mode; vocabulary remains accessible. */
+.course-entry-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:17px;background:linear-gradient(115deg,#342f5a,#534691);border-radius:14px;padding:20px 21px;margin:0 0 16px;color:#fff;box-shadow:0 8px 25px #453a8523}
+.course-entry-title{display:grid;gap:6px;min-width:0}
+.course-entry-title>span{color:#d8ceff;font:800 9px Manrope,'Noto Sans SC',sans-serif;letter-spacing:.6px}
+.course-entry-title>strong{font-size:15px;line-height:1.65;font-weight:800}
+.course-entry-title>p{font-size:9px;line-height:1.8;color:#d1cce5;margin:0}
+.course-entry-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;max-width:335px}
+.course-entry-actions a{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border:1px solid #ffffff38;border-radius:9px;text-decoration:none;font-size:10px;font-weight:800;line-height:1.5;min-height:42px}
+.course-entry-primary{background:white;color:#51439d;flex:1 0 100%}
+.course-entry-secondary{background:#ffffff13;color:#fff;flex:1 1 auto}
+@media(max-width:760px){.course-entry-panel{grid-template-columns:1fr;padding:16px;gap:12px}.course-entry-title>strong{font-size:14px}.course-entry-actions{max-width:none;justify-content:stretch}.course-entry-primary{flex:1 1 100%}.course-entry-secondary{flex:1 1 calc(50% - 8px);font-size:9px!important}}
+@media(max-width:760px){.cpc-mobile-link{min-width:58px;min-height:50px;touch-action:manipulation}.cpc-mobile-link>svg{color:#6658d8;stroke-width:2.4}.cpc-mobile-link>small{color:#6658d8;font-weight:800;font-size:9px}}

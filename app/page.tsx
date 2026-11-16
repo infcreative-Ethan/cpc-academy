@@ -4,8 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Activity, ArrowRight, AudioLines, BookOpen, Brain, Check, ChevronDown, ChevronLeft, ChevronRight, Download,
   CircleHelp, Clock3, Flame, Headphones, Home, Layers3, ListChecks, Menu,
-  Mic2, PencilLine, Play, Repeat2, RotateCcw, Search, Sparkles, Target, Volume2, X
+  Mic2, PencilLine, Play, Repeat2, RotateCcw, Search, Sparkles, Target, Volume2, X,
+  ClipboardCheck, FileText
 } from "lucide-react";
+import Link from "next/link";
 import { MedicalWord, WordCategory } from "@/lib/words";
 import { wordParts, words } from "@/lib/book-words";
 import { emptyProgress, getTodayKey, loadProgress, saveProgress, StudyProgress } from "@/lib/progress";
@@ -501,7 +503,7 @@ export default function HomePage() {
         <div className="side-label">学习中心 · LEARNING</div>
         <nav className="side-nav">
           {navItems.map(item=>{ const Icon=item.icon; return <button key={item.id} className={`nav-item ${tab===item.id?"active":""}`} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}<small>{item.en}</small></span>{tab===item.id&&<span className="nav-dot"/>}</button>; })}
-          <a className="nav-item cpc-nav-link" href="/cpc/"><span className="cpc-nav-badge">C</span><span>编码学习中心<small>CPC Learning Center</small></span></a>
+          <Link className="nav-item cpc-nav-link" href="/cpc/" prefetch={false}><span className="cpc-nav-badge">C</span><span>医学课程与CPC编码<small>116 Medical Lessons · 100 Coding Lessons</small></span></Link>
         </nav>
         <div className="sidebar-bottom"><div className="daily-mini"><div className="daily-mini-icon"><Target size={18}/></div><div><b>每日目标</b><span>{dailyTarget} new words</span></div><strong>{studiedToday}/{dailyTarget}</strong></div><div className="sidebar-foot">CPC Academy <span>V1.0.0-beta.1 · Dictionary + review</span></div></div>
       </aside>
@@ -518,8 +520,16 @@ export default function HomePage() {
         {audioInfo && <div className={`audio-notice ${audioInfo.kind}`} role="status"><Volume2 size={15}/><span>{audioInfo.message}</span><button onClick={()=>setAudioInfo(null)} aria-label="关闭声音提示">×</button></div>}
 
         {tab==="home" && <div className="page-content">
-          <div className="welcome-row"><div><div className="eyebrow"><Sparkles size={14}/> YOUR DAILY STUDY PLAN</div><h1>今天继续积累专业词汇。</h1><p>Build medical English, one term at a time.</p></div><div className="date-chip"><Clock3 size={15}/>{new Intl.DateTimeFormat("zh-CN",{month:"long",day:"numeric",weekday:"short"}).format(new Date())}</div></div>
-          <div className="hero-card"><div className="hero-copy"><span className="hero-kicker">CPC ACADEMY · VOCABULARY</span><h2>Medical terminology<br/><em>starts here.</em></h2><p>医学术语 · 美式发音 · 听力默写 · 词根拆解</p><button className="primary-button" onClick={()=>changeTab("daily")}>开始今日学习 <ArrowRight size={17}/></button></div><div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-cross">+</div><div className="hero-word">cardi<span>/</span>o</div><div className="hero-caption">HEART · 心脏</div></div></div>
+          <div className="welcome-row"><div><div className="eyebrow"><Sparkles size={14}/> CPC ACADEMY · LEARNING PATHWAY</div><h1>今天开始系统学习CPC医学与编码。</h1><p>医学课程、英文病历、职业编码与考试准备。</p></div><div className="date-chip"><Clock3 size={15}/>{new Intl.DateTimeFormat("zh-CN",{month:"long",day:"numeric",weekday:"short"}).format(new Date())}</div></div>
+          <section className="course-entry-panel" aria-label="CPC系统课程快捷入口">
+            <div className="course-entry-title"><span>系统课程 · COURSE PATHWAY</span><strong>22章医学课程已上线，按章节从基础到临床学习</strong><p>医学知识讲解、解剖图、疾病检查、英文病历、测试与编码实操。</p></div>
+            <div className="course-entry-actions">
+              <Link href="/cpc/learn/" prefetch={false} className="course-entry-primary"><BookOpen size={18}/> 开始医学课程 <ArrowRight size={16}/></Link>
+              <Link href="/cpc/coding/" prefetch={false} className="course-entry-secondary"><ClipboardCheck size={17}/> 专业编码课程</Link>
+              <Link href="/cpc/coding/cases/" prefetch={false} className="course-entry-secondary"><FileText size={17}/> 病例训练</Link>
+            </div>
+          </section>
+          <div className="hero-card"><div className="hero-copy"><span className="hero-kicker">VOCABULARY · SUPPORTING STUDY</span><h2>Medical terminology<br/><em>starts here.</em></h2><p>医学术语 · 美式发音 · 听力默写 · 词根拆解</p><button className="primary-button" onClick={()=>changeTab("daily")}>开始今日学习 <ArrowRight size={17}/></button></div><div className="hero-art"><div className="orbit orbit-one"/><div className="orbit orbit-two"/><div className="hero-cross">+</div><div className="hero-word">cardi<span>/</span>o</div><div className="hero-caption">HEART · 心脏</div></div></div>
           <div className="stats-grid"><div className="stat-card"><div className="stat-icon purple"><BookOpen size={18}/></div><span>已掌握词汇</span><strong>{progress.knownIds.length}<small> / {allWords.length}</small></strong><div className="stat-note">Words learned</div></div><div className="stat-card"><div className="stat-icon orange"><Flame size={18}/></div><span>待复习</span><strong>{dueWords.length}</strong><div className="stat-note">Words to review</div></div><div className="stat-card"><div className="stat-icon green"><Target size={18}/></div><span>今日新词</span><strong>{studiedToday}<small> / {dailyTarget}</small></strong><div className="stat-note">Daily target</div></div><div className="stat-card"><div className="stat-icon blue"><Activity size={18}/></div><span>练习正确率</span><strong>{accuracy}<small>%</small></strong><div className="stat-note">Practice accuracy</div></div></div>
           <div className="section-heading"><div><h3>今日学习任务</h3><p>Today&apos;s learning tasks</p></div><span className="section-link">{studiedToday}/{dailyTarget} completed</span></div>
           <div className="task-grid"><button className="task-card" onClick={()=>changeTab("daily")}><div className="task-top"><div className="task-icon purple"><BookOpen size={20}/></div><span className="task-time">20–25 min</span></div><h4>学习 {dailyTarget} 个新单词</h4><p>词义、英文定义、例句与词根</p><div className="task-progress"><span style={{width:`${Math.min(100,studiedToday/dailyTarget*100)}%`}}/></div><div className="task-foot">{studiedToday} / {dailyTarget} <ArrowRight size={16}/></div></button><button className="task-card" onClick={()=>changeTab("listen")}><div className="task-top"><div className="task-icon blue"><Headphones size={20}/></div><span className="task-time">10 min</span></div><h4>医学英语听力</h4><p>听辨医学术语，熟悉美式发音</p><div className="task-foot">开始训练 <ArrowRight size={16}/></div></button><button className="task-card" onClick={()=>changeTab("dictation")}><div className="task-top"><div className="task-icon orange"><PencilLine size={20}/></div><span className="task-time">15 min</span></div><h4>听音与拼写默写</h4><p>听单词、辨词根、练习准确拼写</p><div className="task-foot">开始训练 <ArrowRight size={16}/></div></button><button className="task-card" onClick={startReview}><div className="task-top"><div className="task-icon green"><Repeat2 size={20}/></div><span className="task-time">{reviewRounds} rounds</span></div><h4>今日多轮复习</h4><p>完成新词后，自选复习轮数并逐轮检查掌握情况</p><div className="task-foot">开始复习 <ArrowRight size={16}/></div></button></div>
@@ -673,7 +683,7 @@ export default function HomePage() {
         <footer className="page-footer">CPC ACADEMY <span>·</span> PERSONAL STUDY EDITION <span>·</span> V{APP_VERSION}</footer>
       </section>
 
-      <nav className="mobile-nav">{navItems.slice(0,5).map(item=>{const Icon=item.icon;return <button key={item.id} className={tab===item.id?"mobile-active":""} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}</span></button>;})}<a className="cpc-mobile-link" href="/cpc/"><span>C</span><small>CPC</small></a></nav>
+      <nav className="mobile-nav">{navItems.slice(0,5).map(item=>{const Icon=item.icon;return <button key={item.id} className={tab===item.id?"mobile-active":""} onClick={()=>changeTab(item.id)}><Icon size={19}/><span>{item.label}</span></button>;})}<Link className="cpc-mobile-link" href="/cpc/" prefetch={false} aria-label="进入医学课程和CPC专业编码学习中心"><BookOpen size={19}/><small>课程</small></Link></nav>
     </main>
   );
 }
