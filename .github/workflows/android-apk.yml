@@ -61,6 +61,12 @@ jobs:
       - name: Enrich bilingual medical vocabulary
         run: python scripts/enrich-chinese.py
 
+      - name: Build official FY2027 ICD-10-CM offline lookup
+        run: python scripts/build-icd10cm-reference.py
+
+      - name: Validate 22 medical chapters, 100 coding lessons, 228 cases and mock exam
+        run: node scripts/validate-cpc-content.cjs
+
       - name: Type check
         run: npm run typecheck
 

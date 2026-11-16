@@ -118,6 +118,7 @@ export default function ProfessionalLessonPage(){
           <Link href="/cpc/coding/" className="coding-secondary"><ArrowLeft size={15}/> 课程目录</Link>
           {next&&<button className="coding-primary" onClick={()=>openLesson(next.id)}>下一课：{next.zh}<ArrowRight size={15}/></button>}
         </div>
+        <div className="pro-lesson-resources"><Link href="/cpc/icd10-lookup/" className="coding-secondary">查询官方 ICD-10-CM FY2027 代码描述</Link></div>
         <div className="pro-lesson-resources">
           <h2>官方参考资料</h2>
           {officialCodingResources.filter(x=>/CMS — ICD|AMA|AAPC/.test(x.label)).map(x=><a key={x.url} href={x.url} target="_blank" rel="noopener noreferrer">{x.label} ↗</a>)}

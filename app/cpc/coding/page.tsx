@@ -143,7 +143,7 @@ export default function ProfessionalCodingPage() {
             <span className="coding-eyebrow"><GraduationCap size={14} /> PROFESSIONAL CODING PATHWAY</span>
             <h1>从医学理解，<em>进入专业编码。</em></h1>
             <p>以完整病历为起点，学习 ICD-10-CM、CPT®、HCPCS Level II、编码规则和实际审核流程。</p>
-            <div className="coding-shortcuts"><button className="coding-primary" onClick={() => selectTab("icd10")}>开始 ICD-10-CM <ArrowRight size={15} /></button><Link href="/cpc/coding/cases/" className="coding-shortcut-link">228份病例库 <FileSearch size={15}/></Link><Link href="/cpc/mock-exam/" className="coding-shortcut-link">100题模拟考试 <GraduationCap size={15}/></Link></div>
+            <div className="coding-shortcuts"><button className="coding-primary" onClick={() => selectTab("icd10")}>开始 ICD-10-CM <ArrowRight size={15} /></button><Link href="/cpc/coding/cases/" className="coding-shortcut-link">228份病例库 <FileSearch size={15}/></Link><Link href="/cpc/mock-exam/" className="coding-shortcut-link">100题模拟考试 <GraduationCap size={15}/></Link><Link href="/cpc/icd10-lookup/" className="coding-shortcut-link">离线 ICD-10-CM 代码查询 <Search size={15}/></Link></div>
           </div>
           <div className="coding-hero-art" aria-hidden="true"><div className="coding-orbit one" /><div className="coding-orbit two" /><div className="coding-center"><Stethoscope size={38} /><b>RECORD</b><span>→ CODE → REVIEW</span></div></div>
         </div>

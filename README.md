@@ -133,3 +133,10 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - Case bank: search and filters, coding abstraction notes, favorites, answer feedback, retry, wrong-answer filter and offline browser-local progress.
 - Standalone 100-question 4-hour practice test following AAPC's 17-domain + 10-case *question-count distribution*. 20-question study set, flagging, navigation, persistence through reload, time limit, domain score report and wrong-answer explanations.
 - Questions are **original learning questions, not equivalent in difficulty or authenticity to the AAPC CPC certification exam**. Final specific CPT code selection and claims require the latest authorized codebook and compliance review.
+
+## Optional official ICD-10-CM FY2027 offline lookup
+
+- Build pipeline downloads the CDC or CMS FY2027 public code-description order ZIP and generates a local static code catalog; only the official long descriptions and category-versus-reportable flag are included.
+- `/cpc/icd10-lookup/` supports code and English-description search, billable-only filtering, and per-device favorites; without successful official downloads it explicitly shows the catalog as unavailable, rather than silently substituting a stale code set.
+- Descriptions alone do NOT include Alphabetic Index, full Tabular List notes, exclusions, or sequencing; they are not sufficient to submit medical claims. Current official references must be consulted.
+- CI now runs a Node/TypeScript data-integrity smoke test that confirms 22 textbook chapters, 116 medical lessons, 100 coding lessons, 228 cases and 100-question exam quotas for nine seeds.
