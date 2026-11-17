@@ -12,7 +12,7 @@ type BookPart = { part: string; meaning: string; meaningZh?: string };
 
 /** Translate stored literal escape sequences to visible line breaks while retaining the original text. */
 const decodeTranslatedLines = (value: string) =>
-  value.replace(/\\\\r\\\\n|\\\\n|\\\\r/g, "\n").replace(/\r\n?/g, "\n");
+  value.replace(/\\r\\n|\\n|\\r/g, "\n").replace(/\r\n?/g, "\n");
 
 const starterByTerm = new Map(starterWords.map((word) => [word.term.toLowerCase(), word]));
 const glossaryParts = (data as { parts: BookPart[] }).parts;
