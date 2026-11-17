@@ -56,6 +56,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Validate cloud feedback API syntax
+        run: node --input-type=module --check < cloudflare/pronunciation-worker.js
+
       - name: Validate Chinese translation escape regression
         run: python scripts/test-chinese-lines.py
 
