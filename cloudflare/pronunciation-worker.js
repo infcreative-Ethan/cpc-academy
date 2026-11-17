@@ -1,5 +1,5 @@
 /**
- * Cloudflare Worker for CPC Academy pronunciation reports.
+ * Cloudflare Worker for CPC Academy pronunciation and Chinese-meaning reports.
  * All secrets remain server-side. Each accepted report creates a GitHub issue
  * that the project maintainer can view and ChatGPT can query via GitHub.
  */
@@ -29,35 +29,51 @@ export default {
   }catch{return respond({error:"Invalid JSON"},400);}
   const term=typeof row?.term==="string"?row.term.trim():"";
   const id=typeof row?.id==="string"?row.id.trim():"";
+  const kind=row?.kind==="translation"?"translation":"pronunciation";
   const reason=row?.reason;
   const reportedAt=typeof row?.reportedAt==="string"?row.reportedAt:"";
+  const meaning=typeof row?.meaningSnapshot==="string"?row.meaningSnapshot.trim():"";
+  const note=typeof row?.note==="string"?row.note.trim():"";
+  const descriptions={
+    incorrect:"读音不准确",
+    clipped:"开头音节被吞掉",
+    incomplete:"发音不完整或音频异常",
+    "incorrect-meaning":"中文释义不准确",
+    "missing-meaning":"中文释义缺失",
+    formatting:"中文释义乱码/排版异常",
+    other:"其他中文释义问题",
+  };
+  const allowed=kind==="translation"
+    ?["incorrect-meaning","missing-meaning","formatting","other"]
+    :["incorrect","clipped","incomplete"];
   if(!/^[A-Za-z][A-Za-z0-9 ,.'()/-]{0,119}$/.test(term)||
      !/^[A-Za-z0-9_-]{4,100}$/.test(id)||
-     !["incorrect","clipped","incomplete"].includes(reason)||
+     !allowed.includes(reason)||
+     meaning.length>300||note.length>300||
      Number.isNaN(Date.parse(reportedAt)))
-   return respond({error:"Invalid report"},400);
+    return respond({error:"Invalid report"},400);
   if(!env.GITHUB_TOKEN)return respond({error:"Reporting service not configured"},503);
-  // Optional Cloudflare KV binding REPORT_IDS makes retries idempotent.
   if(env.REPORT_IDS&&await env.REPORT_IDS.get(id))return respond({ok:true,duplicate:true});
-  const descriptions={
-   incorrect:"读音不准确",
-   clipped:"开头音节被吞掉",
-   incomplete:"发音不完整或音频异常",
-  };
-  const safeTerm=term.replace(/[\r\n<>]/g,"");
+  const safe=(value)=>String(value).replace(/[\r\n|<>]/g," ").slice(0,300);
+  const safeTerm=safe(term);
   const repo=env.GITHUB_REPO||"infcreative-Ethan/cpc-academy";
+  const title=kind==="translation"?"[释义反馈] ":"[发音反馈] ";
   const issueBody=[
-   "## CPC Academy 发音错误反馈",
-   "",
-   "| 字段 | 记录 |",
-   "|---|---|",
-   "| 单词 | "+safeTerm.replace(/\|/g," ")+" |",
-   "| 错误类型 | "+descriptions[reason]+" |",
-   "| 手机记录时间 (UTC) | "+new Date(reportedAt).toISOString()+" |",
-   "| 反馈 ID | "+id+" |",
-   "",
-   "> 自动反馈，仅包含词条、错误类型与反馈时间；不上传学习记录或设备身份。",
-   "<!-- cpc-report-id:"+id+" -->",
+    kind==="translation"?"## CPC Academy 中文释义问题反馈":"## CPC Academy 发音错误反馈",
+    "",
+    "| 字段 | 记录 |",
+    "|---|---|",
+    "| 单词 | "+safeTerm+" |",
+    "| 问题类型 | "+descriptions[reason]+" |",
+    ...(kind==="translation"?[
+      "| 当前中文释义 | "+safe(meaning)+" |",
+      "| 用户补充建议 | "+safe(note)+" |",
+    ]:[]),
+    "| 手机记录时间 (UTC) | "+new Date(reportedAt).toISOString()+" |",
+    "| 反馈 ID | "+id+" |",
+    "",
+    "> 自动反馈：不包含学习记录、设备身份或 PDF 文件。",
+    "<!-- cpc-report-id:"+id+" -->",
   ].join("\n");
   try{
    const upstream=await fetch("https://api.github.com/repos/"+repo+"/issues",{
@@ -69,7 +85,7 @@ export default {
      "User-Agent":"CPC-Academy-Report-Worker",
      "Content-Type":"application/json",
     },
-    body:JSON.stringify({title:"[发音反馈] "+safeTerm,body:issueBody}),
+    body:JSON.stringify({title:title+safeTerm,body:issueBody}),
    });
    if(!upstream.ok)return respond({error:"Cloud storage temporarily unavailable"},502);
    const issue=await upstream.json();
