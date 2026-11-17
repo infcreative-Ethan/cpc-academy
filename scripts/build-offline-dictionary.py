@@ -57,7 +57,7 @@ def main() -> None:
             if not useful_rank and lower not in book_terms:
                 continue
             # Keep dictionary entries compact for offline mobile use.
-            clean_translation = re.sub(r"\n{3,}", "\n\n", translation)
+            clean_translation = re.sub(r"\n{3,}", "\n\n", translation.replace(r"\r\n", "\n").replace(r"\n", "\n").replace(r"\r", "\n"))
             dictionary.setdefault(lower, clean_translation[:600])
 
     if not dictionary:
