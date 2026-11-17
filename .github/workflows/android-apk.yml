@@ -56,6 +56,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Validate Chinese translation escape regression
+        run: python scripts/test-chinese-lines.py
+
       - name: Build offline English-Chinese dictionary
         run: python scripts/build-offline-dictionary.py
 
