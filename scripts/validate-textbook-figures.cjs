@@ -39,6 +39,6 @@ for(const s of sections){
  assert.ok(["A","B","C"].includes(s.priority));priority[s.priority]++;
 }
 const nativeSource=fs.readFileSync(path.join(root,"native/TextbookPdfPlugin.java"),"utf8");
-for(const marker of ["ACTION_OPEN_DOCUMENT","PdfRenderer","getStatus","importPdf","renderPage","removePdf","MODE_READ_ONLY","cpc-import-pdf"])
+for(const marker of ["ACTION_OPEN_DOCUMENT","PdfRenderer","getStatus","importPdf","renderPage","removePdf","MODE_READ_ONLY","cpc-import-pdf","Bitmap.Config.ARGB_8888"])
  assert.ok(nativeSource.includes(marker),"Missing native functionality "+marker);
 console.log(JSON.stringify({chapters:22,sections:sections.length,priorities:priority,figures:figure.figures.length,localizedCrop:inferred,verifiedPdfPages:figure.source.pageCount,sha256:figure.source.sha256,containsOriginalFigures:false},null,2));

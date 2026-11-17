@@ -195,7 +195,7 @@ public class TextbookPdfPlugin extends Plugin {
                         width = Math.max(160, Math.round(width * 2400.0f / height));
                         height = 2400;
                     }
-                    Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+                    Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
                     try {
                         Canvas canvas = new Canvas(bitmap);
                         canvas.drawColor(Color.WHITE);
