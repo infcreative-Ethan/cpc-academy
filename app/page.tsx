@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import PronunciationFeedback from "@/components/pronunciation-feedback";
+import ProgressBackup from "@/components/progress-backup";
 import { MedicalWord, WordCategory } from "@/lib/words";
 import { wordParts, words } from "@/lib/book-words";
 import { chapters } from "@/lib/cpc-curriculum";
@@ -807,6 +808,7 @@ export default function HomePage() {
           <div className="word-preview">{progress.reviewHistory.length ? [...progress.reviewHistory].slice(-10).reverse().map((item,index)=><div className="preview-row" key={`${item.date}-${item.round}-${index}`}><span className="word-initial"><Repeat2 size={15}/></span><span className="preview-term"><b>{item.date} · 第 {item.round} 轮</b><small>完成 {item.total} 个词</small></span><span className="preview-zh">{item.correct}/{item.total} · {item.total?Math.round(item.correct/item.total*100):0}%</span></div>) : <div className="empty-state">完成第一轮复习后，这里会显示每轮的正确率。</div>}</div>
           <div className="section-heading"><div><h3>需要加强的词汇</h3><p>Review queue</p></div><span className="section-link">{dueWords.length} terms</span></div>
           <div className="word-preview">{dueWords.length?dueWords.map(w=><button key={w.id} className="preview-row" onClick={()=>{setSelected(w);changeTab("words");}}><span className="word-initial"><RotateCcw size={16}/></span><span className="preview-term"><b>{w.term}</b><small>{w.definition}</small></span><span className="preview-zh">{w.meaning || "查看英文释义"}</span><ArrowRight size={16}/></button>):<div className="empty-state">目前没有待复习词汇。完成练习后，答错的词会自动加入这里。</div>}</div>
+          <ProgressBackup/>
           <button className="reset-button" onClick={()=>{if(window.confirm("确定清空本设备上的 CPC Academy 学习记录吗？")){update(emptyProgress);}}}>清空本地学习记录</button>
         </div>}
         {dictionaryOpen && <div className="dictionary-backdrop" onClick={()=>setDictionaryOpen(false)}>

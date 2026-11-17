@@ -166,3 +166,10 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - Chapter gallery and per-lesson Figure suggestions; manual pinning and crop correction; bilingual structure-label placement and interactive label-hide quizzes.
 - Updated chapter courses and dashboard to link to knowledge and Figure modules; prior local learning records are not deleted.
 - For a different edition/layout, automatic cropping is disabled to prevent wrong-picture matches. No real-device testing or exhaustive textbook concept audit is implied by the initial course map.
+
+## Local study data backup for debug APK migration
+
+- The Progress screen now includes local-only JSON export, clipboard fallback, and validated JSON restore for `cpc-academy-*` study keys. This protects word mastery, chapter study, coding practice, mock exams, pronunciation feedback, and per-Figure pins and labels. No data is sent to a server.
+- GitHub ephemeral debug Android signing certificates **may change between workflow runs**, so an in-place install may be rejected. A user should back up before changing to a newly signed APK; the backup UI cannot retroactively recover information from an older APK that does not contain it.
+- Native app-private imported PDF bytes are **not included** in a JSON backup and must be imported again after uninstall/reinstall. A real signed public release requires a stable private signing keystore configured securely in GitHub Actions secrets; never commit the key to this public repository.
+- As part of figure crop quality-control, 433 automatically located image boxes no longer include the immediately following printed caption line.
