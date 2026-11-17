@@ -249,3 +249,19 @@
 .daily-meaning,.detail-meaning,.chapter-vocab-word-main>span,.vocab-row-text small,
 .daily-definition-zh p,.detail-definition-zh p,.part-zh,.root-card-zh,
 .example-zh{white-space:pre-line;overflow-wrap:anywhere}
+
+/* CPC signed updater overlay and pronunciation cloud-sync status */
+.top-actions .update-notice{
+ position:fixed;top:64px;left:0;right:0;z-index:100;
+ box-shadow:0 8px 20px rgba(34,31,68,.10);
+}
+.update-notice .update-download-now{
+ display:inline-flex;align-items:center;gap:6px;margin-left:0;
+ background:#6555d8;color:white;border:0;border-radius:8px;
+ padding:7px 12px;font-weight:700;cursor:pointer;font-size:11px;
+}
+.pron-feedback-sync-status{
+ display:flex;align-items:center;gap:6px;font-size:11px;
+ color:#6555a5;margin:8px 0;
+}
+@media(max-width:760px){.top-actions .update-notice{top:56px;}}
