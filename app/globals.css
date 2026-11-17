@@ -244,3 +244,8 @@
 @media(max-width:900px){.chapter-vocab-grid{grid-template-columns:185px minmax(0,1fr)}.chapter-vocab-main{padding:12px}}
 @media(max-width:700px){.home-chapter-status{flex-direction:column;align-items:stretch}.home-chapter-status>button{align-self:start}.chapter-vocab-grid{grid-template-columns:1fr}.chapter-vocab-sidebar{position:static}.chapter-vocab-scroll{display:flex;overflow-x:auto;max-height:none;gap:5px;padding-bottom:4px}.chapter-vocab-scroll button{flex:0 0 140px}.chapter-vocab-sidebar h3{font-size:10px}.chapter-vocab-main-heading{align-items:flex-start;flex-direction:column}.chapter-vocab-actions button{flex:1 1 130px}.chapter-vocab-word-buttons{min-width:86px}.chapter-vocab-main-heading h2{font-size:16px}}
 @media(max-width:420px){.chapter-vocab-stat-grid{gap:4px}.chapter-vocab-stat-grid>div{padding:8px 5px}.chapter-vocab-stat-grid strong{font-size:14px}.chapter-vocab-word{gap:5px;padding:9px}.chapter-vocab-word-main small{font-size:8px}.chapter-vocab-word-buttons{min-width:79px}.chapter-vocab-list-heading{flex-direction:column;align-items:flex-start}}
+
+/* CPC escaped-translation line breaks: show each source sense on its own line. */
+.daily-meaning,.detail-meaning,.chapter-vocab-word-main>span,.vocab-row-text small,
+.daily-definition-zh p,.detail-definition-zh p,.part-zh,.root-card-zh,
+.example-zh{white-space:pre-line;overflow-wrap:anywhere}
