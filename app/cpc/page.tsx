@@ -261,7 +261,10 @@ export default function CpcLearningCenter() {
         {panel === "book" && (
           <section className="cpc-panel">
             <div className="cpc-section-heading"><div><span className="cpc-eyebrow">THE LANGUAGE OF MEDICINE · 13TH EDITION</span><h2>按原书目录学习 22 章</h2><p>目前为22个教材章节均制作了独立授课初版，共116节；仍需要持续深化教材每章全部细节和专业实操。每节课的检测通过后才记录掌握度。</p></div><span className="cpc-pill">{completedCount}/{medicalLessons.length} 已通过课时</span></div>
-            <div className="cpc-phase-intro">
+            <div className="cpc-library-shortcuts">
+              <Link href="/cpc/knowledge/" className="cpc-secondary">教材知识点索引（115个二级主题） <ArrowRight size={14}/></Link>
+              <Link href="/cpc/textbook/" className="cpc-secondary">原书PDF图谱（434个Figure定位） <ArrowRight size={14}/></Link>
+            </div><div className="cpc-phase-intro">
               <div><b>01 · Foundation</b><span>Chapters 1–4 · 医学词汇与人体整体结构</span></div>
               <div><b>02 · Body Systems</b><span>Chapters 5–18 · 人体器官系统</span></div>
               <div><b>03 · Specialties</b><span>Chapters 19–22 · 医学专科</span></div>
@@ -283,7 +286,7 @@ export default function CpcLearningCenter() {
                       <div className="cpc-chapter-body">
                         <div className="cpc-topic-list">{chapter.topics.map((topic) => <span key={topic}>{topic}</span>)}</div>
                         <div className="cpc-connection"><b>与 CPC 工作的联系</b><p>{chapter.codingConnection}</p></div>
-                        <div className="cpc-chapter-actions"><Link className="cpc-primary" href={"/cpc/learn/?chapter=" + chapter.number}>{made.length ? "进入本章课程" : "查看本章课程计划"} <ArrowRight size={15}/></Link><Link className="cpc-secondary" href={"/?tab=chapters&chapter=" + chapter.number} prefetch={false}>本章完整词表 · 学习/复习 <BookMarked size={15}/></Link></div>
+                        <div className="cpc-chapter-actions"><Link className="cpc-primary" href={"/cpc/learn/?chapter=" + chapter.number}>{made.length ? "进入本章课程" : "查看本章课程计划"} <ArrowRight size={15}/></Link><Link className="cpc-secondary" href={"/?tab=chapters&chapter=" + chapter.number} prefetch={false}>本章词表 · 学习/复习 <BookMarked size={15}/></Link><Link className="cpc-secondary" href={"/cpc/knowledge/?chapter=" + chapter.number}>本章知识点索引 <BookOpen size={15}/></Link><Link className="cpc-secondary" href={"/cpc/textbook/?chapter=" + chapter.number}>PDF教材配图 <FileText size={15}/></Link></div>
                       </div>
                     )}
                   </article>

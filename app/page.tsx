@@ -573,6 +573,8 @@ export default function HomePage() {
               <Link href="/cpc/learn/" prefetch={false} className="course-entry-primary"><BookOpen size={18}/> 开始医学课程 <ArrowRight size={16}/></Link>
               <Link href="/cpc/coding/" prefetch={false} className="course-entry-secondary"><ClipboardCheck size={17}/> 专业编码课程</Link>
               <Link href="/cpc/coding/cases/" prefetch={false} className="course-entry-secondary"><FileText size={17}/> 病例训练</Link>
+              <Link href="/cpc/knowledge/" prefetch={false} className="course-entry-secondary"><Layers3 size={17}/> 22章知识点地图</Link>
+              <Link href="/cpc/textbook/" prefetch={false} className="course-entry-secondary"><BookOpen size={17}/> 导入教材PDF与配图</Link>
             </div>
           </section>
           <div className="home-chapter-status">

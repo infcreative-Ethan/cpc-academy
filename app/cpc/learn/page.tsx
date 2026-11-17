@@ -8,6 +8,7 @@ import {words} from "@/lib/book-words";
 import {medicalLessons,lessonsForChapter,type MedicalLesson,type MedicalDiagram} from "@/lib/cpc-medical-lessons";
 import PronunciationFeedback from "@/components/pronunciation-feedback";
 import AdvancedMedicalDiagram from "./advanced-diagrams";
+import TextbookFigure from "@/components/textbook-figure";
 import "./learn.css";
 
 type Progress = {passed:Record<string,{score:number;date:string}>;lastLesson:string|null};
@@ -251,6 +252,7 @@ export default function MedicalLearningPage(){
         <h1>医学课程，从第一章开始。</h1>
         <p>按照原书22章的顺序学习。每节已制作课程包含原创讲解、医学术语、临床案例和知识检测。</p>
         <div className="learn-banner-stats"><b>{mastered} / {medicalLessons.length}</b> 医学课程已通过</div>
+        <div className="learn-addon-links"><Link href={"/cpc/knowledge/?chapter="+chapterNo}>查看本章知识点与A/B/C优先级</Link><Link href={"/cpc/textbook/?chapter="+chapterNo}>打开教材图谱与PDF</Link></div>
         {recommended&&<button className="learn-start" onClick={()=>selectLesson(recommended)}>继续推荐：{recommended.zh} <ArrowRight size={15}/></button>}
       </section>
       <div className="learn-layout">
@@ -290,6 +292,7 @@ export default function MedicalLearningPage(){
               <section className="learn-block"><h4><BookOpen size={17}/> 学习目标</h4><ul>{lesson.objectives.map(x=><li key={x}>{x}</li>)}</ul></section>
               <section className="learn-block"><h4><BookOpen size={17}/> 知识讲解</h4>{lesson.teaching.map(item=><div className="learn-teaching" key={item.heading}><b>{item.heading}</b><p>{item.body}</p></div>)}</section>
               {lesson.diagram&&<section className="learn-block"><h4><FileText size={17}/> 可视化知识结构</h4><LessonDiagram kind={lesson.diagram}/></section>}
+              <section className="learn-block"><TextbookFigure key={lesson.id} chapter={chapterNo} lesson={lesson}/></section>
               <section className="learn-block"><h4><BookOpen size={17}/> 医学术语</h4>
                 <div className="learn-term-grid">{lesson.terminology.map(item=>{
                   const available=words.some(w=>w.term.toLowerCase()===item.term.toLowerCase());

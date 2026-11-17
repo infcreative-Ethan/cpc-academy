@@ -157,3 +157,12 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 - Existing daily activity, known words, review queues, review history, local pronunciation reports and other lesson progress keys are preserved. A new `introducedIds` ledger records completed new words for future-day continuation.
 - Direct "本章完整词表" entry from each medical chapter and a visible current-chapter shortcut on the home dashboard.
 - PDF images, detailed A/B/C knowledge-point audit, and one-time PDF import will be implemented in later phases and are **not yet part of this change**.
+
+## Chapter knowledge map and locally imported textbook figures
+
+- 115 PDF bookmark section headings with adjustable A/B/C priority, linked to 116 existing authored medical lessons.
+- 434 Figure ID/page/crop metadata locations extracted from the learner's 13th-edition PDF, distributed without textbook images or page text.
+- User-managed native Android PDF import into app-private storage, one-time local copy, verified exact PDF SHA256/page count and one-page-at-a-time native rendering.
+- Chapter gallery and per-lesson Figure suggestions; manual pinning and crop correction; bilingual structure-label placement and interactive label-hide quizzes.
+- Updated chapter courses and dashboard to link to knowledge and Figure modules; prior local learning records are not deleted.
+- For a different edition/layout, automatic cropping is disabled to prevent wrong-picture matches. No real-device testing or exhaustive textbook concept audit is implied by the initial course map.

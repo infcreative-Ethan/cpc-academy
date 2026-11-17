@@ -7,3 +7,7 @@
 
 .cpc-chapter-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.cpc-chapter-actions a{text-decoration:none}.cpc-chapter-actions .cpc-secondary{font-size:10px}
 @media(max-width:600px){.cpc-chapter-actions{flex-direction:column;align-items:stretch}.cpc-chapter-actions>a{width:100%}}
+
+.cpc-library-shortcuts{display:flex;gap:9px;flex-wrap:wrap;margin:10px 0 15px}
+.cpc-library-shortcuts>a{font-size:10px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+@media(max-width:600px){.cpc-library-shortcuts{flex-direction:column}.cpc-library-shortcuts>a{width:100%}}

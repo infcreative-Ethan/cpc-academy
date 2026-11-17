@@ -70,6 +70,9 @@ jobs:
       - name: Validate chapter vocabulary index and ordered daily study
         run: node scripts/validate-chapter-vocabulary.cjs
 
+      - name: Validate metadata-only textbook Figure mapping
+        run: node scripts/validate-textbook-figures.cjs
+
       - name: Type check
         run: npm run typecheck
 
@@ -103,6 +106,9 @@ jobs:
 
       - name: Add Capacitor Android platform
         run: npx cap add android
+
+      - name: Register native Android textbook PDF import
+        run: python scripts/install-android-pdf-plugin.py
 
       - name: Sync web assets into Android
         run: npx cap sync android

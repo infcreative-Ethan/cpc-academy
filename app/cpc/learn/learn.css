@@ -20,3 +20,8 @@
 .learn-advanced-node b{font-size:11px;color:#554ca4}
 .learn-advanced-node small{font-size:9px;color:#8a83ab}
 .learn-advanced-node>span{font-size:15px;color:#8c80c6}
+
+.learn-addon-links{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:12px 0 3px}
+.learn-addon-links a{display:inline-flex;align-items:center;justify-content:center;gap:6px;color:#ede9ff;border:1px solid #ffffff65;padding:8px 11px;text-decoration:none;border-radius:8px;font-size:9px;font-weight:700}
+.learn-block:has(.pdf-figure-widget){padding:5px;border:0;background:transparent}
+@media(max-width:550px){.learn-addon-links a{flex:1 1 45%}}
