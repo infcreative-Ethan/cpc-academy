@@ -265,3 +265,5 @@
  color:#6555a5;margin:8px 0;
 }
 @media(max-width:760px){.top-actions .update-notice{top:56px;}}
+
+.dictionary-translation p{white-space:pre-line;overflow-wrap:anywhere}
