@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - feature/cpc-academy-v1
   workflow_dispatch:
 
 permissions:
@@ -80,6 +81,8 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_CPC_REPORT_ENDPOINT: ${{ vars.CPC_REPORT_ENDPOINT }}
+          NEXT_PUBLIC_CPC_BUILD_CODE: ${{ github.run_number }}
 
       - name: Cache Piper model and generated MP3 assets
         uses: actions/cache@v4
@@ -110,8 +113,16 @@ jobs:
       - name: Register native Android textbook PDF import
         run: python scripts/install-android-pdf-plugin.py
 
+      - name: Add native Android self-updater
+        run: python scripts/install-android-update-plugin.py
+
       - name: Sync web assets into Android
         run: npx cap sync android
+
+      - name: Assign monotonic Android versionCode
+        run: python scripts/configure-android-release.py
+        env:
+          CPC_BUILD_CODE: ${{ github.run_number }}
 
       - name: Build debug APK
         run: |
@@ -127,17 +138,57 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publish installable APK GitHub prerelease
-        if: github.ref == 'refs/heads/main'
+      # No signing key is ever checked into the public repository. Configure
+      # CPC_ANDROID_KEYSTORE_B64 and 3 passwords/alias as GitHub Actions secrets.
+      - name: Decode private release signing keystore
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          CPC_KEYSTORE_B64: ${{ secrets.CPC_ANDROID_KEYSTORE_B64 }}
+        run: |
+          test -n "$CPC_KEYSTORE_B64" || { echo "CPC Android signing secrets must be configured"; exit 1; }
+          printf '%s' "$CPC_KEYSTORE_B64" | base64 -d > android/app/cpc-release-keystore.jks
+
+      - name: Configure secure Android release signing
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          CPC_BUILD_CODE: ${{ github.run_number }}
+          CPC_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/android/app/cpc-release-keystore.jks
+          CPC_ANDROID_STORE_PASSWORD: ${{ secrets.CPC_ANDROID_STORE_PASSWORD }}
+          CPC_ANDROID_KEY_ALIAS: ${{ secrets.CPC_ANDROID_KEY_ALIAS }}
+          CPC_ANDROID_KEY_PASSWORD: ${{ secrets.CPC_ANDROID_KEY_PASSWORD }}
+        run: python scripts/configure-android-release.py
+
+      - name: Build permanently signed release APK
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          CPC_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/android/app/cpc-release-keystore.jks
+          CPC_ANDROID_STORE_PASSWORD: ${{ secrets.CPC_ANDROID_STORE_PASSWORD }}
+          CPC_ANDROID_KEY_ALIAS: ${{ secrets.CPC_ANDROID_KEY_ALIAS }}
+          CPC_ANDROID_KEY_PASSWORD: ${{ secrets.CPC_ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Upload signed update APK artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CPC-Academy-Signed-Release
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish signed APK as latest installable GitHub release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          cp android/app/build/outputs/apk/debug/app-debug.apk CPC-Academy.apk
+          cp android/app/build/outputs/apk/release/app-release.apk CPC-Academy.apk
           TAG="v1.0.0-beta.${{ github.run_number }}"
-          TITLE="CPC Academy V1.0 Beta — Build #${{ github.run_number }}"
-          NOTES="CPC Learning Center beta. Includes the existing medical vocabulary and audio study tools, 22-chapter textbook navigator, anatomy learning map, simulated clinical documentation cases, coding-set foundations, and offline dictionary. Educational use only; verify real coding against current official references."
+          TITLE="CPC Academy Beta — Build #${{ github.run_number }}"
+          NOTES="Signed Android update. Preserves local progress on in-place installation. Pronunciation cloud sync is active when a cloud endpoint is configured. Medical coding content is for educational use."
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" CPC-Academy.apk --clobber
           else
-            gh release create "$TAG" CPC-Academy.apk --title "$TITLE" --notes "$NOTES" --prerelease
+            gh release create "$TAG" CPC-Academy.apk --title "$TITLE" --notes "$NOTES" --latest
           fi
