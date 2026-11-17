@@ -179,23 +179,17 @@ plugin.parent.mkdir(parents=True,exist_ok=True)
 plugin.write_text(java,encoding="utf-8")
 
 content=main.read_text(encoding="utf-8")
-if "registerPlugin(CpcUpdaterPlugin.class)" not in content:
-    new_main='''package com.cpcacademy.app;
-
-import android.os.Bundle;
-import com.getcapacitor.BridgeActivity;
-
-public class MainActivity extends BridgeActivity {
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        registerPlugin(CpcUpdaterPlugin.class);
-        super.onCreate(savedInstanceState);
-    }
-}
-'''
-    if not re.search(r"class\s+MainActivity\s+extends\s+BridgeActivity",content):
-        raise RuntimeError("MainActivity.java structure changed")
-    main.write_text(new_main,encoding="utf-8")
+if "registerPlugin(CpcUpdaterPlugin.class);" not in content:
+    # Preserve existing TextbookPdfPlugin and its onCreate registration.
+    if "registerPlugin(TextbookPdfPlugin.class);" in content:
+        content=content.replace("registerPlugin(TextbookPdfPlugin.class);",
+            "registerPlugin(TextbookPdfPlugin.class);\n    registerPlugin(CpcUpdaterPlugin.class);",1)
+    elif "super.onCreate(savedInstanceState);" in content:
+        content=content.replace("super.onCreate(savedInstanceState);",
+            "registerPlugin(CpcUpdaterPlugin.class);\n    super.onCreate(savedInstanceState);",1)
+    else:
+        raise RuntimeError("Unexpected MainActivity layout; refusing to overwrite native plugins")
+    main.write_text(content,encoding="utf-8")
 
 m=manifest.read_text(encoding="utf-8")
 if "android.permission.REQUEST_INSTALL_PACKAGES" not in m:
