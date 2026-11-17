@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import PronunciationFeedback from "@/components/pronunciation-feedback";
+import AppUpdateButton from "@/components/app-update-button";
 import ProgressBackup from "@/components/progress-backup";
 import { MedicalWord, WordCategory } from "@/lib/words";
 import { wordParts, words } from "@/lib/book-words";
@@ -93,8 +94,6 @@ export default function HomePage() {
   const [reviewCorrect, setReviewCorrect] = useState(0);
   const [reviewAttempts, setReviewAttempts] = useState(0);
   const [reviewRoundResults, setReviewRoundResults] = useState<{round:number;correct:number;total:number}[]>([]);
-  const [checkingUpdate, setCheckingUpdate] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<{message:string;url?:string}|null>(null);
   const [audioInfo, setAudioInfo] = useState<AudioStatus | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -515,32 +514,6 @@ export default function HomePage() {
     playAudioFile("/audio/examples/" + audioSlug(word.term) + ".mp3", rate);
   };
 
-  const checkForUpdates = async () => {
-    setCheckingUpdate(true);
-    setUpdateInfo(null);
-    const actionsUrl = "https://github.com/infcreative-Ethan/cpc-academy/actions/workflows/android-apk.yml";
-    try {
-      const response = await fetch("https://api.github.com/repos/infcreative-Ethan/cpc-academy/actions/workflows/android-apk.yml/runs?branch=main&status=completed&per_page=1", {
-        headers: { Accept: "application/vnd.github+json" },
-      });
-      if (!response.ok) throw new Error("GitHub API request failed");
-      const data = await response.json();
-      const run = data.workflow_runs?.[0];
-      if (!run) {
-        setUpdateInfo({ message: "暂时没有可下载的 APK 构建记录。", url: actionsUrl });
-      } else if (run.conclusion !== "success") {
-        setUpdateInfo({ message: "最近一次 APK 构建未成功，点击查看构建日志。", url: run.html_url || actionsUrl });
-      } else {
-        setUpdateInfo({ message: `最新 APK 构建完成：${new Date(run.updated_at).toLocaleDateString("zh-CN")}`, url: run.html_url || actionsUrl });
-      }
-    } catch {
-      setUpdateInfo({ message: "检查更新失败，可打开 GitHub 构建页面查看。", url: actionsUrl });
-    } finally {
-      setCheckingUpdate(false);
-    }
-  };
-
-
   if (!ready) return <main className="loading-screen"><div className="brand-mark">C</div><p>CPC Academy 正在加载…</p></main>;
 
   return (
@@ -561,9 +534,8 @@ export default function HomePage() {
         <header className="topbar">
           <button className="icon-button mobile-only" onClick={()=>setMobileMenu(!mobileMenu)} aria-label="打开菜单"><Menu size={21}/></button>
           <div className="breadcrumb">CPC Academy <span>/</span> {navItems.find(n=>n.id===tab)?.en}</div>
-          <div className="top-actions"><button className="update-button" onClick={checkForUpdates} disabled={checkingUpdate}><Download size={14}/>{checkingUpdate ? "检查中…" : "检查更新"}</button><span className="language-pill">中 / EN</span><div className="avatar">E</div></div>
+          <div className="top-actions"><AppUpdateButton/><span className="language-pill">中 / EN</span><div className="avatar">E</div></div>
         </header>
-        {updateInfo && <div className="update-notice"><span>{updateInfo.message}</span>{updateInfo.url && <a href={updateInfo.url} target="_blank" rel="noreferrer">打开 APK 下载页</a>}<button onClick={()=>setUpdateInfo(null)} aria-label="关闭">×</button></div>}
         {audioInfo && <div className={`audio-notice ${audioInfo.kind}`} role="status"><Volume2 size={15}/><span>{audioInfo.message}</span><button onClick={()=>setAudioInfo(null)} aria-label="关闭声音提示">×</button></div>}
 
         {tab==="home" && <div className="page-content">
