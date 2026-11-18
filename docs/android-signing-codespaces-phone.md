@@ -29,7 +29,7 @@ bash scripts/setup-release-signing-codespaces.sh
 
 若终端显示 `SUCCESS: four release signing secrets saved to GitHub Actions.`，即配置成功。
 
-**如果提示 GitHub 权限不足：** 不要删除 Codespace，也不要重新生成密钥。需要为 GitHub CLI 完成仓库管理员授权后重试相同命令。确保私钥身份不发生更换。
+**如果提示 GitHub 权限不足：** 脚本会自动开启 GitHub CLI 网页或设备授权流程。按照屏幕提示授权后继续，不要把验证码、Token 或密码发到聊天。如果仍无法授权，不要删除 Codespace，也不要重新生成密钥。
 
 ## 3. 必须下载密钥恢复 ZIP
 在 Codespaces 左侧文件浏览器中：
