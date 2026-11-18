@@ -101,11 +101,20 @@ jobs:
             out/audio
           key: cpc-audio-en-us-kristin-${{ hashFiles('lib/book-vocabulary.json', 'lib/words.ts', 'scripts/generate-audio.py') }}
 
-      - name: Install FFmpeg for MP3 encoding
+      - name: Ensure FFmpeg for MP3 encoding without slow apt mirrors
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
-          ffmpeg -version
+          if command -v ffmpeg >/dev/null 2>&1; then
+            echo "Using the FFmpeg already present on the runner"
+            ffmpeg -version
+          else
+            python -m pip install --disable-pip-version-check imageio-ffmpeg==0.6.0
+            FFMPEG_EXE="$(python -c 'import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())')"
+            test -x "$FFMPEG_EXE"
+            mkdir -p "$RUNNER_TEMP/cpc-ffmpeg"
+            ln -sf "$FFMPEG_EXE" "$RUNNER_TEMP/cpc-ffmpeg/ffmpeg"
+            echo "$RUNNER_TEMP/cpc-ffmpeg" >> "$GITHUB_PATH"
+            "$FFMPEG_EXE" -version
+          fi
 
       - name: Verify medical pronunciation overrides
         run: python scripts/test-pronunciation.py
