@@ -1,0 +1,64 @@
+name: Diagnose CPC Academy Build 121 installation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/diagnose-apk-install.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-apk:
+    name: Verify released APK structure and 16 KB alignment
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Download exact published APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.0.0-beta.121 --repo infcreative-Ethan/cpc-academy --pattern 'CPC-Academy.apk'
+          test "$(stat -c%s CPC-Academy.apk)" -eq 166386293
+          printf '%s  %s\n' '0738e95c49c951e9f659c277d0afebdf546b1cb312794cb803ab107023472a72' CPC-Academy.apk | sha256sum -c -
+      - name: Inspect APK metadata, signature, file integrity and alignment
+        run: |
+          sdkmanager --install 'build-tools;36.0.0'
+          BT="$ANDROID_HOME/build-tools/36.0.0"
+          unzip -t CPC-Academy.apk | tail -n 2
+          "$BT/apksigner" verify --verbose --print-certs CPC-Academy.apk
+          "$BT/aapt" dump badging CPC-Academy.apk | head -n 30
+          echo 'Shared-library entries (if any):'
+          unzip -Z1 CPC-Academy.apk | grep -E '^lib/[^/]+/[^/]+\.so$' || true
+          echo '16 KB ZIP alignment check:'
+          "$BT/zipalign" -c -P 16 -v 4 CPC-Academy.apk | tail -n 10
+
+  install-emulator:
+    name: Android 16 emulator package-manager install test
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Download exact published APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v1.0.0-beta.121 --repo infcreative-Ethan/cpc-academy --pattern 'CPC-Academy.apk'
+          printf '%s  %s\n' '0738e95c49c951e9f659c277d0afebdf546b1cb312794cb803ab107023472a72' CPC-Academy.apk | sha256sum -c -
+      - name: Install APK using Android package manager (capture exact error)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 36
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -no-audio -no-snapshot -gpu swiftshader_indirect
+          script: |
+            adb shell getprop ro.build.version.release
+            adb shell getconf PAGE_SIZE
+            adb install -r -t CPC-Academy.apk
+            adb shell pm path com.cpcacademy.app
