@@ -6,3 +6,8 @@ dist
 *.log
 .env*
 !.env.example
+
+# Permanent Android release signing keys must never enter source control.
+.private-signing/
+*.jks
+*.keystore

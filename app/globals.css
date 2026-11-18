@@ -244,3 +244,29 @@
 @media(max-width:900px){.chapter-vocab-grid{grid-template-columns:185px minmax(0,1fr)}.chapter-vocab-main{padding:12px}}
 @media(max-width:700px){.home-chapter-status{flex-direction:column;align-items:stretch}.home-chapter-status>button{align-self:start}.chapter-vocab-grid{grid-template-columns:1fr}.chapter-vocab-sidebar{position:static}.chapter-vocab-scroll{display:flex;overflow-x:auto;max-height:none;gap:5px;padding-bottom:4px}.chapter-vocab-scroll button{flex:0 0 140px}.chapter-vocab-sidebar h3{font-size:10px}.chapter-vocab-main-heading{align-items:flex-start;flex-direction:column}.chapter-vocab-actions button{flex:1 1 130px}.chapter-vocab-word-buttons{min-width:86px}.chapter-vocab-main-heading h2{font-size:16px}}
 @media(max-width:420px){.chapter-vocab-stat-grid{gap:4px}.chapter-vocab-stat-grid>div{padding:8px 5px}.chapter-vocab-stat-grid strong{font-size:14px}.chapter-vocab-word{gap:5px;padding:9px}.chapter-vocab-word-main small{font-size:8px}.chapter-vocab-word-buttons{min-width:79px}.chapter-vocab-list-heading{flex-direction:column;align-items:flex-start}}
+
+/* CPC escaped-translation line breaks: show each source sense on its own line. */
+.daily-meaning,.detail-meaning,.chapter-vocab-word-main>span,.vocab-row-text small,
+.daily-definition-zh p,.detail-definition-zh p,.part-zh,.root-card-zh,
+.example-zh{white-space:pre-line;overflow-wrap:anywhere}
+
+/* CPC signed updater overlay and pronunciation cloud-sync status */
+.top-actions .update-notice{
+ position:fixed;top:64px;left:0;right:0;z-index:100;
+ box-shadow:0 8px 20px rgba(34,31,68,.10);
+}
+.update-notice .update-download-now{
+ display:inline-flex;align-items:center;gap:6px;margin-left:0;
+ background:#6555d8;color:white;border:0;border-radius:8px;
+ padding:7px 12px;font-weight:700;cursor:pointer;font-size:11px;
+}
+.pron-feedback-sync-status{
+ display:flex;align-items:center;gap:6px;font-size:11px;
+ color:#6555a5;margin:8px 0;
+}
+@media(max-width:760px){.top-actions .update-notice{top:56px;}}
+
+.dictionary-translation p{white-space:pre-line;overflow-wrap:anywhere}
+
+.translation-feedback-note{display:block;width:100%;min-height:56px;margin:8px 0 10px;padding:10px;border:1px solid #e4e1fb;border-radius:9px;background:#fff;color:#40415d;font:inherit;font-size:12px;resize:vertical;box-sizing:border-box}
+.translation-feedback-note:focus{outline:2px solid #bbb3ff;outline-offset:1px}

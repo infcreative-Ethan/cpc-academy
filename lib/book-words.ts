@@ -10,6 +10,10 @@ import {
 type BookTerm = { term: string; pronunciation: string; definition: string; meaning?: string; meaningSource?: string; definitionZh?: string };
 type BookPart = { part: string; meaning: string; meaningZh?: string };
 
+/** Translate stored literal escape sequences to visible line breaks while retaining the original text. */
+const decodeTranslatedLines = (value: string) =>
+  value.replace(/\\r\\n|\\n|\\r/g, "\n").replace(/\r\n?/g, "\n");
+
 const starterByTerm = new Map(starterWords.map((word) => [word.term.toLowerCase(), word]));
 const glossaryParts = (data as { parts: BookPart[] }).parts;
 const allPartsByKey = new Map<string, WordPart>();
@@ -18,7 +22,7 @@ const englishText = (value: string) => value.replace(/[\u3400-\u9fff][\u3400-\u9
 for (const part of [...glossaryParts, ...starterParts]) {
   const key = part.part.toLowerCase();
   const previous = allPartsByKey.get(key);
-  const zh = part.meaningZh || chineseText(part.meaning) || previous?.meaningZh || (previous ? chineseText(previous.meaning) : "");
+  const zh = decodeTranslatedLines(part.meaningZh || chineseText(part.meaning) || previous?.meaningZh || (previous ? chineseText(previous.meaning) : ""));
   const en = englishText(part.meaning) || previous?.meaning || part.meaning;
   allPartsByKey.set(key, { part: part.part, meaning: en, ...(zh ? { meaningZh: zh } : {}) });
 }
@@ -55,9 +59,9 @@ export const words: MedicalWord[] = bookTerms.map((item, index) => {
     id: starter?.id ?? `book-${String(index + 1).padStart(4, "0")}`,
     term: item.term,
     pronunciation: item.pronunciation,
-    meaning: starter?.meaning ?? item.meaning ?? "",
+    meaning: decodeTranslatedLines(starter?.meaning ?? item.meaning ?? ""),
     definition: item.definition,
-    definitionZh: starter?.definitionZh ?? item.definitionZh ?? "",
+    definitionZh: decodeTranslatedLines(starter?.definitionZh ?? item.definitionZh ?? ""),
     meaningSource: starter?.meaning ? "existing" : item.meaningSource,
     category: starter?.category ?? categoryFor(item.term, item.definition),
     parts: starter?.parts?.length ? starter.parts : inferParts(item.term),

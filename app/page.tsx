@@ -9,6 +9,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import PronunciationFeedback from "@/components/pronunciation-feedback";
+import TranslationFeedback from "@/components/translation-feedback";
+import AppUpdateButton from "@/components/app-update-button";
 import ProgressBackup from "@/components/progress-backup";
 import { MedicalWord, WordCategory } from "@/lib/words";
 import { wordParts, words } from "@/lib/book-words";
@@ -93,8 +95,6 @@ export default function HomePage() {
   const [reviewCorrect, setReviewCorrect] = useState(0);
   const [reviewAttempts, setReviewAttempts] = useState(0);
   const [reviewRoundResults, setReviewRoundResults] = useState<{round:number;correct:number;total:number}[]>([]);
-  const [checkingUpdate, setCheckingUpdate] = useState(false);
-  const [updateInfo, setUpdateInfo] = useState<{message:string;url?:string}|null>(null);
   const [audioInfo, setAudioInfo] = useState<AudioStatus | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
@@ -515,32 +515,6 @@ export default function HomePage() {
     playAudioFile("/audio/examples/" + audioSlug(word.term) + ".mp3", rate);
   };
 
-  const checkForUpdates = async () => {
-    setCheckingUpdate(true);
-    setUpdateInfo(null);
-    const actionsUrl = "https://github.com/infcreative-Ethan/cpc-academy/actions/workflows/android-apk.yml";
-    try {
-      const response = await fetch("https://api.github.com/repos/infcreative-Ethan/cpc-academy/actions/workflows/android-apk.yml/runs?branch=main&status=completed&per_page=1", {
-        headers: { Accept: "application/vnd.github+json" },
-      });
-      if (!response.ok) throw new Error("GitHub API request failed");
-      const data = await response.json();
-      const run = data.workflow_runs?.[0];
-      if (!run) {
-        setUpdateInfo({ message: "暂时没有可下载的 APK 构建记录。", url: actionsUrl });
-      } else if (run.conclusion !== "success") {
-        setUpdateInfo({ message: "最近一次 APK 构建未成功，点击查看构建日志。", url: run.html_url || actionsUrl });
-      } else {
-        setUpdateInfo({ message: `最新 APK 构建完成：${new Date(run.updated_at).toLocaleDateString("zh-CN")}`, url: run.html_url || actionsUrl });
-      }
-    } catch {
-      setUpdateInfo({ message: "检查更新失败，可打开 GitHub 构建页面查看。", url: actionsUrl });
-    } finally {
-      setCheckingUpdate(false);
-    }
-  };
-
-
   if (!ready) return <main className="loading-screen"><div className="brand-mark">C</div><p>CPC Academy 正在加载…</p></main>;
 
   return (
@@ -561,9 +535,8 @@ export default function HomePage() {
         <header className="topbar">
           <button className="icon-button mobile-only" onClick={()=>setMobileMenu(!mobileMenu)} aria-label="打开菜单"><Menu size={21}/></button>
           <div className="breadcrumb">CPC Academy <span>/</span> {navItems.find(n=>n.id===tab)?.en}</div>
-          <div className="top-actions"><button className="update-button" onClick={checkForUpdates} disabled={checkingUpdate}><Download size={14}/>{checkingUpdate ? "检查中…" : "检查更新"}</button><span className="language-pill">中 / EN</span><div className="avatar">E</div></div>
+          <div className="top-actions"><AppUpdateButton/><span className="language-pill">中 / EN</span><div className="avatar">E</div></div>
         </header>
-        {updateInfo && <div className="update-notice"><span>{updateInfo.message}</span>{updateInfo.url && <a href={updateInfo.url} target="_blank" rel="noreferrer">打开 APK 下载页</a>}<button onClick={()=>setUpdateInfo(null)} aria-label="关闭">×</button></div>}
         {audioInfo && <div className={`audio-notice ${audioInfo.kind}`} role="status"><Volume2 size={15}/><span>{audioInfo.message}</span><button onClick={()=>setAudioInfo(null)} aria-label="关闭声音提示">×</button></div>}
 
         {tab==="home" && <div className="page-content">
@@ -623,6 +596,7 @@ export default function HomePage() {
               {dailyCurrentWord.pronunciation && <div className="pronunciation-guide">教材注音：{dailyCurrentWord.pronunciation}</div>}
               <div className="daily-audio-actions"><button className="speaker-button" onClick={()=>playWord(dailyCurrentWord,1)}><Volume2 size={17}/> 美式发音</button><button className="speaker-button" onClick={()=>playWord(dailyCurrentWord,0.75)}>慢速播放</button></div>
               <PronunciationFeedback term={dailyCurrentWord.term}/>
+              <TranslationFeedback term={dailyCurrentWord.term} meaning={dailyCurrentWord.meaning}/>
               <div className="daily-detail-section"><div className="definition-heading"><span>ENGLISH DEFINITION · 英文定义</span><small className="definition-hint">点击英文单词可翻译</small><button className="inline-audio" onClick={()=>playDefinition(dailyCurrentWord)}><Volume2 size={14}/> 朗读定义</button></div><p>{renderDictionaryText(dailyCurrentWord.definition, dailyCurrentWord.term)}</p>{dailyCurrentWord.definitionZh && <div className="daily-definition-zh"><b>中文解释</b><p>{dailyCurrentWord.definitionZh}</p></div>}</div>
               <div className="daily-detail-section"><span>WORD PARTS · 词根拆解</span><div className="parts-row">{dailyCurrentWord.parts.map((part,index)=><div className="part-chip" key={index}><b>{part.part}</b><small>{renderDictionaryText(part.meaning, dailyCurrentWord.term)}</small>{part.meaningZh && <small className="part-zh">{part.meaningZh}</small>}</div>)}</div></div>
               {dailyCurrentWord.example && <div className="daily-detail-section"><span>CLINICAL EXAMPLE · 医学例句</span><p className="example-en">{renderDictionaryText(dailyCurrentWord.example, dailyCurrentWord.term)}</p>{dailyCurrentWord.exampleZh && <p className="example-zh">{dailyCurrentWord.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(dailyCurrentWord,1)}><Volume2 size={14}/> 播放例句</button></div></div>}
@@ -726,7 +700,7 @@ export default function HomePage() {
           <div className="page-title-row"><div><div className="eyebrow">MEDICAL TERMINOLOGY</div><h1>医学词汇库</h1><p>Search, study and master medical terms.</p></div><div className="count-chip">{allWords.length} TERMS</div></div>
           <div className="vocab-layout"><div className="vocab-list-panel"><div className="search-box"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="搜索英文、中文、词根…" /><span>{filteredWords.length}</span></div><div className="category-scroll">{categories.map(c=><button key={c} onClick={()=>setCategory(c)} className={category===c?"filter-active":""}>{c==="All"?"全部":c}</button>)}</div><div className="vocab-list">{filteredWords.map(w=><button key={w.id} className={`vocab-row ${selected.id===w.id?"selected":""}`} onClick={()=>setSelected(w)}><span className="word-initial">{w.term[0].toUpperCase()}</span><span className="vocab-row-text"><b>{w.term}</b><small>{w.meaning || w.definition}</small></span><span className="row-status">{progress.knownIds.includes(w.id)?<Check size={16}/>:<span/>}</span></button>)}{filteredWords.length===0&&<div className="empty-state">没有找到匹配词汇。<br/>Try another search.</div>}</div></div>
           <div className="word-detail"><div className="detail-top"><span className="detail-category">{selected.category}</span><div className="audio-controls"><button className="speaker-button" onClick={()=>playWord(selected,1)}><Volume2 size={18}/> 正常发音</button><button className="speaker-button" onClick={()=>playWord(selected,0.75)}>慢速</button></div></div><div className="detail-term">{selected.term}</div><div className="detail-meaning">{selected.meaning || "中文释义待补充"}</div>{selected.meaningSource === "machine-translation" && <div className="translation-source">自动翻译参考译名 · 建议结合英文定义核对</div>}{selected.pronunciation && <div className="pronunciation-guide">教材注音：{selected.pronunciation}</div>}<div className="detail-definition"><div className="definition-heading"><span>ENGLISH DEFINITION</span><small className="definition-hint">点击英文单词可翻译</small><button className="inline-audio" onClick={()=>playDefinition(selected)}><Volume2 size={14}/> 朗读定义</button></div><p>{renderDictionaryText(selected.definition, selected.term)}</p>{selected.definitionZh && <div className="detail-definition-zh"><span>中文解释</span><p>{selected.definitionZh}</p></div>}</div><div className="detail-block"><div className="block-label">WORD PARTS <span>词根拆解</span></div><div className="parts-row">{selected.parts.map((p,i)=><div className="part-chip" key={i}><b>{p.part}</b><small>{renderDictionaryText(p.meaning, selected.term)}</small>{p.meaningZh && <small className="part-zh">{p.meaningZh}</small>}</div>)}</div></div>{selected.example && <div className="detail-block"><div className="block-label">CLINICAL EXAMPLE <span>医学例句</span></div><p className="example-en">{renderDictionaryText(selected.example, selected.term)}</p>{selected.exampleZh && <p className="example-zh">{selected.exampleZh}</p>}<div className="audio-controls"><button className="inline-audio" onClick={()=>playExample(selected,1)}><Volume2 size={15}/> 正常播放</button><button className="inline-audio" onClick={()=>playExample(selected,0.75)}>慢速播放</button></div></div>}<div className="detail-actions"><button className="secondary-button" onClick={()=>markReview(selected)}><RotateCcw size={16}/> 加入复习</button><button className="primary-button" onClick={()=>markKnown(selected)}><Check size={17}/> 我已掌握</button></div><p className="detail-footnote">独立预生成的美式英语 MP3 音频 · 离线可播放 · 慢速播放 0.75×。不使用手机 TTS 或语音包。</p><div className="audio-help-actions"><button className="inline-audio" onClick={()=>playWord(selected,1)}><Volume2 size={15}/> 试听当前单词</button></div>
-          <PronunciationFeedback term={selected.term}/></div></div>
+          <PronunciationFeedback term={selected.term}/><TranslationFeedback term={selected.term} meaning={selected.meaning}/></div></div>
         </div>}
 
         {tab==="review" && <div className="page-content narrow-content">
@@ -818,6 +792,7 @@ export default function HomePage() {
             {dictionaryLoading ? <p className="dictionary-status">正在读取内置离线词典…</p> : dictionaryTranslation ? <div className="dictionary-translation"><span>中文释义 · 离线词典</span><p>{dictionaryTranslation}</p></div> : <p className="dictionary-status">内置词典暂未收录该词。你仍可在下方补充中文释义并加入生词本。</p>}
             <label className="dictionary-input-label">中文释义（可修改）</label>
             <input className="dictionary-translation-input" value={dictionaryTranslation} onChange={event=>setDictionaryTranslation(event.target.value)} placeholder="输入或修改中文翻译…" />
+            <TranslationFeedback term={dictionaryWord} meaning={dictionaryTranslation}/>
             <div className="dictionary-modal-actions">
               <button className="secondary-button" onClick={()=>setDictionaryOpen(false)}>关闭</button>
               <button className="primary-button" onClick={addDictionaryWord}>{allWords.some(word=>word.term.toLowerCase()===dictionaryWord.toLowerCase())?"加入待复习":"加入生词 · Other"}</button>

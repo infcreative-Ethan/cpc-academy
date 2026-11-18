@@ -63,8 +63,8 @@ The public repository includes a GitHub Actions workflow at `.github/workflows/a
 2. Select **Build CPC Academy Android APK**.
 3. If you want to build without making a code change, select **Run workflow** and choose the `main` branch.
 4. Open the completed workflow run.
-5. In **Artifacts**, download `CPC-Academy-Android-APK`.
-6. Extract the downloaded ZIP and install `app-debug.apk` on your Android phone.
+5. For direct testing only, the workflow still uploads the `CPC-Academy-Android-APK` debug artifact.
+6. For permanent on-device installation and future in-place updates, use the **signed** `CPC-Academy.apk` in the repository's latest GitHub Release after setting the Android signing secrets. Do not install debug artifacts over the signed app.
 
 A push to the `main` branch also starts a build automatically. The workflow uses the standard `ubuntu-24.04` GitHub-hosted runner. Standard GitHub-hosted runners are free for public repositories. The APK artifact is retained for 30 days; download it before it expires.
 
@@ -85,7 +85,7 @@ cd android
 - Pronunciation uses pre-generated en-US MP3 files bundled into the APK. Playback does not call Android Text-to-Speech or require an installed voice pack.
 - The app shell is packaged locally; the initial vocabulary and learning features do not require a server.
 - The initial vocabulary set is a starter dataset and should be reviewed against the learner's selected course materials before being treated as an authoritative glossary.
-- The debug APK is signed with Android's debug key and is intended for direct testing/sideload installation, not Play Store distribution.
+- The debug APK is strictly for development. For long-term use, configure private signing secrets, publish the signed release APK, and use the App's in-app version checker.
 
 
 ## Bilingual vocabulary data
@@ -145,7 +145,7 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 
 - Correct the US pronunciation of **thoracic** using a vetted eSpeak phoneme override (Cambridge dictionary IPA /θəˈræsɪk/, Piper raw phonemes `θəɹˈæsɪk`). The override applies to standalone words and compounds including thoracic cavity / thoracic duct; the written term never changes.
 - Extend all generated MP3 files to 600 ms leading and 350 ms trailing silence, reducing WebView audio onset clipping on phones. The exact audio model must be validated audibly on a device, since passing phoneme checks does not certify perceived pronunciation.
-- New **发音有误？记录** controls on daily word cards, dictionary term details and medical lessons store an on-device issue list by word and symptom; learners can copy it into a bug report. No patient data or bug telemetry is uploaded.
+- **发音有误？记录** preserves existing local reports, queues new issues offline, and optionally syncs them through a configured Cloudflare Worker to GitHub Issues. No learning records, patient data or PDF bytes are uploaded. Without the Worker URL it remains local-only with copy/export.
 - CI runs `scripts/test-pronunciation.py` and validates the forced phoneme mapping against the loaded Piper voice.
 
 ## Chapter-based vocabulary study — first phase
@@ -170,6 +170,6 @@ Before the static build, `scripts/enrich-chinese.py` matches the book terms agai
 ## Local study data backup for debug APK migration
 
 - The Progress screen now includes local-only JSON export, clipboard fallback, and validated JSON restore for `cpc-academy-*` study keys. This protects word mastery, chapter study, coding practice, mock exams, pronunciation feedback, and per-Figure pins and labels. No data is sent to a server.
-- GitHub ephemeral debug Android signing certificates **may change between workflow runs**, so an in-place install may be rejected. A user should back up before changing to a newly signed APK; the backup UI cannot retroactively recover information from an older APK that does not contain it.
-- Native app-private imported PDF bytes are **not included** in a JSON backup and must be imported again after uninstall/reinstall. A real signed public release requires a stable private signing keystore configured securely in GitHub Actions secrets; never commit the key to this public repository.
+- Debug signing certificates may change between runs. The new release workflow supports stable private signing secrets and monotonic version codes; signed APKs can then update in place. Export and verify a backup before the one-time switch from old debug signing to release signing.
+- Native app-private imported PDF bytes are **not included** in a JSON backup and may need re-importing after uninstall/reinstall. Never commit the release keystore or secret values to this public repository. Setup: [Cloud feedback and signed updates](docs/cloud-feedback-and-updates.md).
 - As part of figure crop quality-control, 433 automatically located image boxes no longer include the immediately following printed caption line.

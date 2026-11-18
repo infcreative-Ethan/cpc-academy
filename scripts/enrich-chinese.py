@@ -50,7 +50,8 @@ def has_chinese(value: str) -> bool:
 
 def clean_translation(value: str) -> str:
     candidates = []
-    for raw in (value or "").splitlines():
+    normalized = (value or "").replace(r"\r\n", "\n").replace(r"\n", "\n").replace(r"\r", "\n")
+    for raw in normalized.splitlines():
         line = raw.strip()
         if not line:
             continue
@@ -94,7 +95,7 @@ def load_ecdict(url: str) -> dict[str, tuple[str, str]]:
         try:
             saved = json.loads(DICTIONARY_PATH.read_text(encoding="utf-8"))
             result = {
-                normalize(source): (target, "english-chinese-dictionary")
+                normalize(source): (clean_translation(target), "english-chinese-dictionary")
                 for source, target in saved.items()
                 if source and target and has_chinese(target) and normalize(source)
             }
