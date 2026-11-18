@@ -1,0 +1,12 @@
+name = "cpc-academy-pronunciation"
+main = "cloudflare/pronunciation-worker.js"
+compatibility_date = "2026-11-01"
+workers_dev = true
+
+[vars]
+GITHUB_REPO = "infcreative-Ethan/cpc-academy"
+
+# Optional idempotency: create a KV namespace and uncomment this binding.
+# [[kv_namespaces]]
+# binding = "REPORT_IDS"
+# id = "replace-with-your-cloudflare-kv-namespace-id"

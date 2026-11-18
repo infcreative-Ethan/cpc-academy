@@ -4,10 +4,14 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
+      - feature/cpc-academy-v1
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: cpc-academy-android-${{ github.ref }}
@@ -17,7 +21,7 @@ jobs:
   build-android:
     name: Build installable Android APK
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 180
 
     steps:
       - name: Check out source
@@ -52,8 +56,32 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Validate phone-only release signing setup
+        run: bash -n scripts/setup-release-signing-codespaces.sh
+
+      - name: Validate cloud feedback API syntax
+        run: node --input-type=module --check < cloudflare/pronunciation-worker.js
+
+      - name: Validate Chinese translation escape regression
+        run: python scripts/test-chinese-lines.py
+
+      - name: Build offline English-Chinese dictionary
+        run: python scripts/build-offline-dictionary.py
+
       - name: Enrich bilingual medical vocabulary
         run: python scripts/enrich-chinese.py
+
+      - name: Build official FY2027 ICD-10-CM offline lookup
+        run: python scripts/build-icd10cm-reference.py
+
+      - name: Validate 22 medical chapters, 100 coding lessons, 228 cases and mock exam
+        run: node scripts/validate-cpc-content.cjs
+
+      - name: Validate chapter vocabulary index and ordered daily study
+        run: node scripts/validate-chapter-vocabulary.cjs
+
+      - name: Validate metadata-only textbook Figure mapping
+        run: node scripts/validate-textbook-figures.cjs
 
       - name: Type check
         run: npm run typecheck
@@ -62,21 +90,48 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: 1
+          NEXT_PUBLIC_CPC_REPORT_ENDPOINT: ${{ vars.CPC_REPORT_ENDPOINT }}
+          NEXT_PUBLIC_CPC_BUILD_CODE: ${{ github.run_number }}
 
-      - name: Generate offline US English MP3 library
+      - name: Cache Piper model and generated MP3 assets
+        uses: actions/cache@v4
+        with:
+          path: |
+            .piper
+            out/audio
+          key: cpc-audio-en-us-kristin-${{ hashFiles('lib/book-vocabulary.json', 'lib/words.ts', 'scripts/generate-audio.py') }}
+
+      - name: Install FFmpeg for MP3 encoding
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
+          ffmpeg -version
+
+      - name: Verify medical pronunciation overrides
+        run: python scripts/test-pronunciation.py
+
+      - name: Generate offline US English MP3 library
+        run: |
           python -m pip install --disable-pip-version-check piper-tts==1.4.2
           python -m piper.download_voices en_US-kristin-medium --data-dir .piper
-          ffmpeg -version
           python scripts/generate-audio.py --model .piper/en_US-kristin-medium.onnx --output-dir out/audio
 
       - name: Add Capacitor Android platform
         run: npx cap add android
 
+      - name: Register native Android textbook PDF import
+        run: python scripts/install-android-pdf-plugin.py
+
+      - name: Add native Android self-updater
+        run: python scripts/install-android-update-plugin.py
+
       - name: Sync web assets into Android
         run: npx cap sync android
+
+      - name: Assign monotonic Android versionCode
+        run: python scripts/configure-android-release.py
+        env:
+          CPC_BUILD_CODE: ${{ github.run_number }}
 
       - name: Build debug APK
         run: |
@@ -84,10 +139,70 @@ jobs:
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: CPC-Academy-Android-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+
+      # No signing key is ever checked into the public repository. Configure
+      # CPC_ANDROID_KEYSTORE_B64 and 3 passwords/alias as GitHub Actions secrets.
+      - name: Decode private release signing keystore
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          CPC_KEYSTORE_B64: ${{ secrets.CPC_ANDROID_KEYSTORE_B64 }}
+        run: |
+          test -n "$CPC_KEYSTORE_B64" || { echo "CPC Android signing secrets must be configured"; exit 1; }
+          printf '%s' "$CPC_KEYSTORE_B64" | base64 -d > android/app/cpc-release-keystore.jks
+
+      - name: Configure secure Android release signing
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          CPC_BUILD_CODE: ${{ github.run_number }}
+          CPC_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/android/app/cpc-release-keystore.jks
+          CPC_ANDROID_STORE_PASSWORD: ${{ secrets.CPC_ANDROID_STORE_PASSWORD }}
+          CPC_ANDROID_KEY_ALIAS: ${{ secrets.CPC_ANDROID_KEY_ALIAS }}
+          CPC_ANDROID_KEY_PASSWORD: ${{ secrets.CPC_ANDROID_KEY_PASSWORD }}
+        run: python scripts/configure-android-release.py
+
+      - name: Build permanently signed release APK
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          CPC_ANDROID_KEYSTORE_FILE: ${{ github.workspace }}/android/app/cpc-release-keystore.jks
+          CPC_ANDROID_STORE_PASSWORD: ${{ secrets.CPC_ANDROID_STORE_PASSWORD }}
+          CPC_ANDROID_KEY_ALIAS: ${{ secrets.CPC_ANDROID_KEY_ALIAS }}
+          CPC_ANDROID_KEY_PASSWORD: ${{ secrets.CPC_ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Verify production APK signature
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
+
+      - name: Upload signed update APK artifact
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: CPC-Academy-Signed-Release
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Publish signed APK as latest installable GitHub release
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk CPC-Academy.apk
+          TAG="v1.0.0-beta.${{ github.run_number }}"
+          TITLE="CPC Academy Beta — Build #${{ github.run_number }}"
+          NOTES="Signed Android update. Preserves local progress on in-place installation. Pronunciation cloud sync is active when a cloud endpoint is configured. Medical coding content is for educational use."
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" CPC-Academy.apk --clobber
+          else
+            gh release create "$TAG" CPC-Academy.apk --title "$TITLE" --notes "$NOTES" --latest
+          fi

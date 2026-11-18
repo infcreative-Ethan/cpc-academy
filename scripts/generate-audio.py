@@ -12,6 +12,7 @@ import wave
 from pathlib import Path
 
 from piper import PiperVoice
+from pronunciation_lexicon import load_pronunciation_overrides, apply_pronunciation_overrides
 
 
 def slug(value: str) -> str:
@@ -24,11 +25,12 @@ def unescape_ts_string(value: str) -> str:
     return json.loads('"' + value + '"')
 
 
-def speech_text(value: str) -> str:
-    # Expand common glossary punctuation without changing the displayed term.
+def speech_text(value: str, overrides: dict[str, str]) -> str:
+    # Expand glossary punctuation, then inject verified pronunciation rules.
     value = re.sub(r";\s*pl\.?", ", plural", value, flags=re.IGNORECASE)
     value = value.replace(";", ",")
-    return re.sub(r"\s+", " ", value).strip()
+    value = re.sub(r"\s+", " ", value).strip()
+    return apply_pronunciation_overrides(value, overrides)
 
 
 def synthesize_mp3(voice: PiperVoice, text: str, destination: Path, temp_dir: Path) -> None:
@@ -40,7 +42,7 @@ def synthesize_mp3(voice: PiperVoice, text: str, destination: Path, temp_dir: Pa
         [
             "ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
             "-i", str(wav_path),
-            "-af", "adelay=delays=300:all=1,apad=pad_dur=0.15",
+            "-af", "adelay=delays=600:all=1,apad=pad_dur=0.35",
             "-codec:a", "libmp3lame", "-b:a", "64k",
             "-ar", "22050", "-ac", "1",
             "-write_xing", "1",
@@ -108,6 +110,17 @@ def main() -> None:
         folder.mkdir(parents=True, exist_ok=True)
 
     voice = PiperVoice.load(args.model)
+    overrides = load_pronunciation_overrides()
+    # Safety check: Piper must preserve explicitly supplied eSpeak phonemes.
+    for written, raw_phonemes in overrides.items():
+        spoken = speech_text(written, overrides)
+        result = "".join("".join(chunk) for chunk in voice.phonemize(spoken))
+        if raw_phonemes not in result:
+            raise RuntimeError(f"Pronunciation override ignored for {written}: {result!r}")
+        unsupported = [p for p in raw_phonemes if p not in voice.config.phoneme_id_map]
+        if unsupported:
+            raise RuntimeError(f"Unsupported phonemes for {written}: {unsupported}")
+    print(f"Pronunciation overrides verified with Piper: {list(overrides)}", flush=True)
     generated = {"words": 0, "definitions": 0, "parts": 0, "examples": 0}
     failures: list[str] = []
 
@@ -121,7 +134,7 @@ def main() -> None:
             current += 1
             try:
                 if not path.exists() or path.stat().st_size == 0:
-                    synthesize_mp3(voice, speech_text(text), path, temp_dir)
+                    synthesize_mp3(voice, speech_text(text, overrides), path, temp_dir)
                 generated[bucket] += 1
             except Exception as error:  # fail the build after reporting all failed entries
                 failures.append(f"{label}: {error}")
@@ -156,8 +169,10 @@ def main() -> None:
         "voice": "en_US-kristin-medium",
         "accent": "en-US",
         "format": "MP3, 22050 Hz, mono, 64 kbps",
-        "leading_silence_ms": 300,
-        "trailing_silence_ms": 150,
+        "leading_silence_ms": 600,
+        "trailing_silence_ms": 350,
+        "pronunciation_overrides": sorted(overrides),
+        "pronunciation_validation": "Piper phoneme routing checked before synthesis",
         "offline": True,
         "counts": generated,
         "total": sum(generated.values()),

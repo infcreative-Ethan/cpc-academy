@@ -171,3 +171,102 @@
 
 .definition-hint{font-size:8px;color:#a0a3b0;margin-left:auto;margin-right:4px;white-space:nowrap}
 @media(max-width:760px){.definition-hint{width:100%;margin:0}}
+
+.cpc-nav-link{border-top:1px solid #ffffff16;margin-top:8px;padding-top:14px}.cpc-nav-badge{width:19px;height:19px;border-radius:6px;background:#514a81;color:#d8d3ff;display:grid;place-items:center;font:800 11px Manrope;flex-shrink:0}.cpc-mobile-link{border:0;background:none;color:#9a9eaa;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:52px;text-decoration:none;font-size:8px}.cpc-mobile-link span{width:20px;height:20px;border-radius:6px;background:#efedff;color:#6658d8;display:grid;place-items:center;font:800 11px Manrope}.cpc-mobile-link small{font-size:8px}
+
+/* System courses are the primary learning mode; vocabulary remains accessible. */
+.course-entry-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:17px;background:linear-gradient(115deg,#342f5a,#534691);border-radius:14px;padding:20px 21px;margin:0 0 16px;color:#fff;box-shadow:0 8px 25px #453a8523}
+.course-entry-title{display:grid;gap:6px;min-width:0}
+.course-entry-title>span{color:#d8ceff;font:800 9px Manrope,'Noto Sans SC',sans-serif;letter-spacing:.6px}
+.course-entry-title>strong{font-size:15px;line-height:1.65;font-weight:800}
+.course-entry-title>p{font-size:9px;line-height:1.8;color:#d1cce5;margin:0}
+.course-entry-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:7px;max-width:335px}
+.course-entry-actions a{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 12px;border:1px solid #ffffff38;border-radius:9px;text-decoration:none;font-size:10px;font-weight:800;line-height:1.5;min-height:42px}
+.course-entry-primary{background:white;color:#51439d;flex:1 0 100%}
+.course-entry-secondary{background:#ffffff13;color:#fff;flex:1 1 auto}
+@media(max-width:760px){.course-entry-panel{grid-template-columns:1fr;padding:16px;gap:12px}.course-entry-title>strong{font-size:14px}.course-entry-actions{max-width:none;justify-content:stretch}.course-entry-primary{flex:1 1 100%}.course-entry-secondary{flex:1 1 calc(50% - 8px);font-size:9px!important}}
+@media(max-width:760px){.cpc-mobile-link{min-width:58px;min-height:50px;touch-action:manipulation}.cpc-mobile-link>svg{color:#6658d8;stroke-width:2.4}.cpc-mobile-link>small{color:#6658d8;font-weight:800;font-size:9px}}
+
+/* Local pronunciation issue log: no uploads or remote collection. */
+.pron-feedback{margin:9px 0 10px;padding:10px;border:1px solid #e7e3f4;border-radius:9px;background:#faf9ff;display:grid;gap:8px;min-width:0}
+.pron-feedback-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pron-feedback-actions select{border:1px solid #ded9ef;border-radius:7px;padding:7px;background:#fff;color:#5e6080;font:10px 'Noto Sans SC',sans-serif;min-width:0;max-width:180px}
+.pron-feedback button{border:1px solid #e2dbf2;border-radius:7px;padding:8px 10px;background:#f1eeff;color:#6959aa;display:inline-flex;align-items:center;gap:6px;font:700 10px 'Noto Sans SC',sans-serif;cursor:pointer}
+.pron-feedback>p{margin:0;color:#6c668d;font-size:9px;line-height:1.6}
+.pron-feedback details{display:grid;gap:7px;min-width:0}
+.pron-feedback summary{font-size:10px;color:#65559e;cursor:pointer;font-weight:700}
+.pron-feedback textarea{display:block;width:100%;margin:9px 0;padding:8px;border:1px solid #ded9ef;border-radius:7px;background:white;color:#62647a;font:10px/1.6 'Noto Sans SC',sans-serif;resize:vertical;box-sizing:border-box}
+.pron-feedback.compact{display:inline-flex;margin:0;padding:0;border:0;background:transparent}
+.pron-feedback.compact button{font-size:8px;padding:6px;border-radius:7px;white-space:nowrap}
+@media(max-width:520px){.pron-feedback-actions select{flex:1;max-width:none}.pron-feedback-actions button{flex:1;justify-content:center}.pron-feedback.compact button{flex:auto}}
+
+/* Chapter-order vocabulary learning, shared with legacy word progress. */
+.home-chapter-status{display:flex;justify-content:space-between;align-items:center;gap:13px;background:#f0eeff;border:1px solid #ded9f6;border-radius:11px;padding:13px 15px;margin:4px 0 14px;color:#5d558c}
+.home-chapter-status>div{display:grid;gap:3px;min-width:0}.home-chapter-status span{font-size:9px;font-weight:800;color:#8176bd}.home-chapter-status b{font-size:12px;line-height:1.5}.home-chapter-status small{font-size:9px;color:#83869e;line-height:1.6}.home-chapter-status button{flex-shrink:0}
+.chapter-vocab-daily-scope{display:block;color:#6155a5!important;font-weight:700;font-size:10px!important;margin-top:6px!important}
+.chapter-vocab-page{min-width:0}.chapter-vocab-notice{display:flex;gap:11px;align-items:flex-start;background:#f3f2ff;border:1px solid #e1def5;border-radius:10px;padding:12px;color:#675bad;margin:12px 0}
+.chapter-vocab-notice>svg{flex-shrink:0}.chapter-vocab-notice>div{display:grid;gap:4px}.chapter-vocab-notice b{font-size:10px}.chapter-vocab-notice span{font-size:9px;line-height:1.8;color:#8184a0}
+.chapter-vocab-grid{display:grid;grid-template-columns:240px minmax(0,1fr);gap:13px;align-items:start}
+.chapter-vocab-sidebar,.chapter-vocab-main{background:#fff;border:1px solid #e8e7f0;border-radius:12px;min-width:0}
+.chapter-vocab-sidebar{padding:12px;position:sticky;top:85px}.chapter-vocab-sidebar h3{font-size:11px;color:#62678a;margin:2px 0 10px}.chapter-vocab-scroll{max-height:65vh;overflow-y:auto;display:grid;gap:4px}
+.chapter-vocab-scroll button{border:1px solid transparent;border-radius:8px;background:white;display:flex;align-items:center;gap:9px;text-align:left;padding:8px 7px;min-width:0;cursor:pointer}
+.chapter-vocab-scroll button.active{background:#f0edff;border-color:#dbd4fc}.chapter-vocab-no{display:grid;place-items:center;border-radius:7px;width:28px;height:28px;background:#ece8ff;font:800 10px Manrope;color:#6757b9;flex-shrink:0}
+.chapter-vocab-mini{display:grid;gap:3px;flex:1;min-width:0}.chapter-vocab-mini b{font-size:9px;color:#555c70;overflow-wrap:anywhere;line-height:1.5}.chapter-vocab-mini small{font-size:8px;color:#9399a8}.chapter-vocab-scroll button>svg{flex-shrink:0;color:#aaa4cc}
+.chapter-vocab-main{padding:18px;display:grid;gap:13px}.chapter-vocab-main-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.chapter-vocab-main-heading h2{font:800 18px/1.5 Manrope,'Noto Sans SC';margin:5px 0;color:#373c59}
+.chapter-vocab-main-heading p{font-size:10px;color:#84889a;line-height:1.6;margin:0}
+.chapter-vocab-lesson-link{background:#ece9fd;text-decoration:none;border-radius:8px;color:#6856ae;font-size:9px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:10px}
+.chapter-vocab-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.chapter-vocab-stat-grid>div{border:1px solid #e7e6ee;background:#fbfaff;padding:10px 8px;border-radius:9px;display:grid;gap:5px}
+.chapter-vocab-stat-grid strong{font:800 18px Manrope;color:#6253b2}.chapter-vocab-stat-grid span{font-size:8px;color:#9195a6}
+.chapter-vocab-progress{height:6px;border-radius:8px;background:#eeeaf8;overflow:hidden}
+.chapter-vocab-progress span{height:100%;background:#7565ca;display:block;border-radius:8px}
+.chapter-vocab-actions{display:flex;gap:8px;flex-wrap:wrap}.chapter-vocab-actions button{display:inline-flex;gap:6px;align-items:center;justify-content:center;font-size:9px;min-height:36px}
+.chapter-vocab-actions button:disabled{opacity:.43;cursor:default}
+.chapter-vocab-complete{display:flex;align-items:center;gap:7px;font-size:10px;color:#3b8a70;background:#edf9f3;border-radius:9px;padding:10px}
+.chapter-vocab-filterbar{display:flex;gap:8px;align-items:center}
+.chapter-vocab-filterbar label{min-width:0;flex:1;display:flex;align-items:center;gap:7px;border:1px solid #e4e3ef;border-radius:9px;padding:9px;color:#8a82b9}
+.chapter-vocab-filterbar input{flex:1;min-width:0;border:0;outline:none;font-size:10px}
+.chapter-vocab-filterbar select{background:white;border:1px solid #e5e2ed;padding:9px;border-radius:9px;font-size:10px;color:#686d7c;max-width:116px}
+.chapter-vocab-list-heading{display:flex;align-items:center;justify-content:space-between;gap:9px}
+.chapter-vocab-list-heading b{font-size:11px;color:#5b5a7c}.chapter-vocab-list-heading span{font-size:9px;color:#9698a8;text-align:right;line-height:1.5}
+.chapter-vocab-word-list{max-height:560px;overflow-y:auto;border:1px solid #eceaf3;border-radius:9px}
+.chapter-vocab-word{padding:11px;display:flex;gap:10px;border-bottom:1px solid #f0eff5;align-items:flex-start}.chapter-vocab-word:last-child{border-bottom:0}
+.chapter-vocab-word-no{display:grid;place-items:center;width:29px;height:27px;background:#f0edff;border-radius:7px;color:#7568ba;font:800 9px Manrope;flex-shrink:0}
+.chapter-vocab-word-main{display:grid;gap:3px;flex:1;min-width:0}.chapter-vocab-word-main b{font:800 12px Manrope,'Noto Sans SC';color:#3b3e5c;overflow-wrap:anywhere}
+.chapter-vocab-word-main span{font-size:10px;color:#595e7a;line-height:1.7}.chapter-vocab-word-main small{font-size:9px;color:#878ca3;line-height:1.65}
+.chapter-vocab-word-main em{font-size:8px;color:#a298bf;font-style:normal}.chapter-vocab-word-buttons{display:grid;gap:6px;justify-items:end;min-width:100px}
+.chapter-vocab-word-buttons>span{font-size:8px;font-weight:700}.chapter-vocab-word-buttons .is-mastered{color:#268a61}.chapter-vocab-word-buttons .is-due{color:#b5782f}.chapter-vocab-word-buttons .is-learned{color:#6d62b5}.chapter-vocab-word-buttons .is-new{color:#a9aab8}
+.chapter-vocab-word-buttons button{border:1px solid #e8e4f5;border-radius:7px;background:#faf9ff;color:#695fa9;padding:6px;font-size:9px;display:flex;align-items:center;gap:4px;cursor:pointer}
+.chapter-vocab-word-buttons button:disabled{opacity:.38}.chapter-vocab-empty{font-size:10px;color:#aaa6ba;padding:22px;text-align:center}
+.chapter-vocab-footer{margin-top:13px;font-size:9px!important;color:#858ba0;line-height:1.9!important}
+.chapter-vocab-reset-review{border:1px solid #ded9f2;background:#faf8ff;border-radius:7px;padding:7px 10px;color:#6b60a8;font-size:9px;cursor:pointer}
+@media(max-width:900px){.chapter-vocab-grid{grid-template-columns:185px minmax(0,1fr)}.chapter-vocab-main{padding:12px}}
+@media(max-width:700px){.home-chapter-status{flex-direction:column;align-items:stretch}.home-chapter-status>button{align-self:start}.chapter-vocab-grid{grid-template-columns:1fr}.chapter-vocab-sidebar{position:static}.chapter-vocab-scroll{display:flex;overflow-x:auto;max-height:none;gap:5px;padding-bottom:4px}.chapter-vocab-scroll button{flex:0 0 140px}.chapter-vocab-sidebar h3{font-size:10px}.chapter-vocab-main-heading{align-items:flex-start;flex-direction:column}.chapter-vocab-actions button{flex:1 1 130px}.chapter-vocab-word-buttons{min-width:86px}.chapter-vocab-main-heading h2{font-size:16px}}
+@media(max-width:420px){.chapter-vocab-stat-grid{gap:4px}.chapter-vocab-stat-grid>div{padding:8px 5px}.chapter-vocab-stat-grid strong{font-size:14px}.chapter-vocab-word{gap:5px;padding:9px}.chapter-vocab-word-main small{font-size:8px}.chapter-vocab-word-buttons{min-width:79px}.chapter-vocab-list-heading{flex-direction:column;align-items:flex-start}}
+
+/* CPC escaped-translation line breaks: show each source sense on its own line. */
+.daily-meaning,.detail-meaning,.chapter-vocab-word-main>span,.vocab-row-text small,
+.daily-definition-zh p,.detail-definition-zh p,.part-zh,.root-card-zh,
+.example-zh{white-space:pre-line;overflow-wrap:anywhere}
+
+/* CPC signed updater overlay and pronunciation cloud-sync status */
+.top-actions .update-notice{
+ position:fixed;top:64px;left:0;right:0;z-index:100;
+ box-shadow:0 8px 20px rgba(34,31,68,.10);
+}
+.update-notice .update-download-now{
+ display:inline-flex;align-items:center;gap:6px;margin-left:0;
+ background:#6555d8;color:white;border:0;border-radius:8px;
+ padding:7px 12px;font-weight:700;cursor:pointer;font-size:11px;
+}
+.pron-feedback-sync-status{
+ display:flex;align-items:center;gap:6px;font-size:11px;
+ color:#6555a5;margin:8px 0;
+}
+@media(max-width:760px){.top-actions .update-notice{top:56px;}}
+
+.dictionary-translation p{white-space:pre-line;overflow-wrap:anywhere}
+
+.translation-feedback-note{display:block;width:100%;min-height:56px;margin:8px 0 10px;padding:10px;border:1px solid #e4e1fb;border-radius:9px;background:#fff;color:#40415d;font:inherit;font-size:12px;resize:vertical;box-sizing:border-box}
+.translation-feedback-note:focus{outline:2px solid #bbb3ff;outline-offset:1px}

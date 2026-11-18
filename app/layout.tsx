@@ -2,8 +2,8 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "CPC Academy | Medical Vocabulary",
-  description: "Bilingual medical terminology study for the US CPC certification pathway.",
+  title: "CPC Academy | Medical Coding Learning",
+  description: "Medical terminology, offline pronunciation, anatomy, clinical documentation, and U.S. medical coding study.",
   applicationName: "CPC Academy",
   manifest: "/manifest.json",
   icons: { icon: "/icon.svg", apple: "/icon.svg" },

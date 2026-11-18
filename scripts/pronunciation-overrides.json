@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "locale": "en-US",
+  "notes": "Only verified pronunciation corrections. Other terms retain default Piper synthesis pending review.",
+  "entries": [
+    {
+      "term": "thoracic",
+      "ipa": "θəˈræsɪk",
+      "espeak_phonemes": "θəɹˈæsɪk",
+      "source": "https://dictionary.cambridge.org/us/pronunciation/english/thoracic",
+      "note": "Correct secondary-syllable stress and reduced initial vowel; matches Cambridge US phonemes."
+    }
+  ]
+}
