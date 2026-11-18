@@ -56,6 +56,9 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Validate phone-only release signing setup
+        run: bash -n scripts/setup-release-signing-codespaces.sh
+
       - name: Validate cloud feedback API syntax
         run: node --input-type=module --check < cloudflare/pronunciation-worker.js
 
@@ -174,6 +177,11 @@ jobs:
         run: |
           cd android
           ./gradlew assembleRelease --no-daemon
+
+      - name: Verify production APK signature
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: |
+          "$ANDROID_HOME/build-tools/36.0.0/apksigner" verify --verbose --print-certs android/app/build/outputs/apk/release/app-release.apk
 
       - name: Upload signed update APK artifact
         if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
