@@ -17,6 +17,8 @@ jobs:
     steps:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - name: Download exact published APK
         env:
           GH_TOKEN: ${{ github.token }}
@@ -42,6 +44,8 @@ jobs:
     steps:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
       - name: Download exact published APK
         env:
           GH_TOKEN: ${{ github.token }}
