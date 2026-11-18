@@ -64,18 +64,35 @@ chmod 600 "$BACKUP"
 } > "$SECRETS"
 chmod 600 "$SECRETS"
 
-if gh secret set -R "$REPO" --env-file "$SECRETS" >/dev/null; then
-  rm -f "$SECRETS"
+# Codespaces' default token sometimes has repo-content permission but not
+# Actions secrets permission. If so, request a one-time owner approval in browser.
+if gh secret set -R "$REPO" --env-file "$SECRETS" >/dev/null 2>&1; then
+  UPLOADED=yes
+else
+  echo "GitHub requires an additional authorization to write Actions secrets."
+  echo "Follow the GitHub CLI browser/device prompts. No password will be printed."
+  if env -u GH_TOKEN -u GITHUB_TOKEN gh auth login \
+      --hostname github.com --git-protocol https --web --scopes repo </dev/tty; then
+    if env -u GH_TOKEN -u GITHUB_TOKEN gh secret set -R "$REPO" \
+        --env-file "$SECRETS" >/dev/null; then
+      UPLOADED=yes
+    else
+      UPLOADED=no
+    fi
+  else
+    UPLOADED=no
+  fi
+fi
+rm -f "$SECRETS"
+if [[ "$UPLOADED" == yes ]]; then
   echo "SUCCESS: four release signing secrets saved to GitHub Actions."
   echo "NEXT: Download the private backup ZIP from the Codespaces file explorer."
   echo "WARNING: Keep the ZIP confidential and NEVER commit or share it."
   echo "RECOVERY FILE: $BACKUP"
   echo "DO NOT delete this Codespace until your backup ZIP is stored safely elsewhere."
 else
-  rm -f "$SECRETS"
-  echo "GitHub denied permission to update Actions secrets."
-  echo "The private signing key and recovery ZIP are preserved in $PRIVATE_DIR."
-  echo "Sign in with repository-admin authorization for the gh CLI, then rerun this script."
-  echo "Do NOT regenerate the key or delete the Codespace."
+  echo "Unable to authorize GitHub Actions secret uploads."
+  echo "The signing key and recovery ZIP remain in $PRIVATE_DIR."
+  echo "Do NOT regenerate the key, expose private material, or delete this Codespace."
   exit 1
 fi
